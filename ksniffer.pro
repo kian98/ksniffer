@@ -24,12 +24,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++11
 
+# include WinPcap
+INCLUDEPATH += D:/WpdPack/Include/
+LIBS += -L D:/WpdPack/Lib/x64/ -lwpcap -lws2_32
+
 SOURCES += \
         main.cpp \
         mainwindow.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+    wdpcap.h
 
 FORMS += \
         mainwindow.ui
