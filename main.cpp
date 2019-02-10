@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     MainWindow w;
-    //w.show();
+    w.show();
 
     //for test configuratiojn
     get_all_adapter_info();
