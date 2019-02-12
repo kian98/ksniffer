@@ -89,16 +89,33 @@
            </widget>
           </item>
           <item>
-           <widget class="QListView" name="listView">
+           <widget class="TreeWidget" name="nicTree">
             <property name="statusTip">
              <string>选择设备</string>
             </property>
             <property name="autoFillBackground">
              <bool>false</bool>
             </property>
-            <property name="spacing">
-             <number>0</number>
+            <property name="sizeAdjustPolicy">
+             <enum>QAbstractScrollArea::AdjustIgnored</enum>
             </property>
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="headerHidden">
+             <bool>true</bool>
+            </property>
+            <attribute name="headerVisible">
+             <bool>false</bool>
+            </attribute>
+            <attribute name="headerCascadingSectionResizes">
+             <bool>true</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string notr="true">1</string>
+             </property>
+            </column>
            </widget>
           </item>
           <item>
@@ -112,7 +129,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>60</width>
-              <height>200</height>
+              <height>100</height>
              </size>
             </property>
            </spacer>
@@ -133,7 +150,7 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="nicSelect">
               <property name="statusTip">
                <string>选中</string>
               </property>
@@ -159,7 +176,7 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_2">
+             <widget class="QPushButton" name="nicCancel">
               <property name="statusTip">
                <string>取消</string>
               </property>
@@ -561,6 +578,13 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>TreeWidget</class>
+   <extends>QTreeWidget</extends>
+   <header location="global">treewidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

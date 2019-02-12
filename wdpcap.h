@@ -15,5 +15,4 @@
 
 #include "pcap.h"
 
-
 #endif // WDPCAP_H

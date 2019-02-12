@@ -30,11 +30,14 @@ LIBS += -L D:/WpdPack/Lib/x64/ -lwpcap -lws2_32
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    treewidget.cpp
 
 HEADERS += \
         mainwindow.h \
-    wdpcap.h
+    wdpcap.h \
+    treewidget.h \
+    devinfo.h
 
 FORMS += \
         mainwindow.ui
