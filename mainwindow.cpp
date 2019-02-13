@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QStackedWidget>
+#include <QMessageBox>
 #include <QDebug>
 #include "treewidget.h"
 
@@ -16,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     /* 设置Stacke Widget初始索引页面 */
     ui->stackedWidget->setCurrentIndex(NIC_SELECT_SCENE);
 
+    /******** 网卡选择界面 ********/
     /* 添加网卡设备数据 */
     auto nicInfo = getNicInfo();
     for (auto nif : nicInfo){
@@ -23,11 +25,58 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     /* 选择网卡 */
-
+    connect(ui->nicSelect, &QPushButton::clicked, [=](){
+        QStringList curNicName = ui->nicTree->getCurrentNicName();
+        ui->stackedWidget->setCurrentIndex(SNIFFER_SCENE);
+        ui->nicDesc->setText(curNicName[0]);
+        ui->nicName->setText(curNicName[1]);
+    });
 
     /* 取消选择，退出 */
     connect(ui->nicCancel, &QPushButton::clicked, [=](){
         this->close();
+    });
+
+    /******** 数据监听界面 ********/
+    /* 设置按钮 Enabled */
+    ui->stopBtn->setEnabled(false);
+
+    /* 开始抓包按钮 */
+    connect(ui->startBtn, &QPushButton::clicked, [=](){
+        DevInfo* nic = new DevInfo;
+        for (auto nif : nicInfo){
+            if(ui->nicName->text() == nif->name){
+                nic = nif;
+                break;
+            }
+        }
+        capThread = new CapThread(nic);
+        capThread->start();
+        ui->stopBtn->setEnabled(true);
+        ui->startBtn->setEnabled(false);
+    });
+
+    /* 结束抓包按钮 */
+    connect(ui->stopBtn, &QPushButton::clicked, [=](){
+        if(capThread->isRunning()){
+            capThread->quit();
+            delete capThread;
+            capThread = nullptr;
+        }
+        ui->stopBtn->setEnabled(false);
+        ui->startBtn->setEnabled(true);
+        qDebug("Stop");
+    });
+
+    /* 返回到网卡选择 */
+    connect(ui->backBtn, &QPushButton::clicked, [=](){
+        if(capThread != nullptr && capThread->isRunning()){
+            capThread->quit();
+            delete capThread;
+            capThread = nullptr;
+            ui->stopBtn->setEnabled(false);
+        }
+        ui->stackedWidget->setCurrentIndex(NIC_SELECT_SCENE);
     });
 }
 
@@ -49,14 +98,13 @@ QVector<DevInfo *> MainWindow::getNicInfo()
     char* char_PCAP_SRC_IF_STRING = string_array.data();
     if (pcap_findalldevs_ex(char_PCAP_SRC_IF_STRING, nullptr, &alldevs, errbuf) == -1)
     {
-        fprintf(stderr,"Error in pcap_findalldevs: %s\n",errbuf);
+        qDebug("Error in pcap_findalldevs: %s\n",errbuf);
         exit(1);
     }
 
     /* 扫描列表并打印每一项 */
     for(d=alldevs;d;d=d->next)
     {
-        qDebug() << "Print" << endl;
         nicVector.append(ifget(d));
     }
 
@@ -72,64 +120,64 @@ DevInfo* MainWindow::ifget(pcap_if_t *d)
     DevInfo * devs = new DevInfo;
 
     /* 设备名(Name) */
-    qDebug("%s",d->name);
+    //qDebug("%s",d->name);
     devs->name = QString(QLatin1String(d->name));
 
     /* 设备描述(Description) */
     if (d->description)
     {
         devs->description = QString(d->description);
-        qDebug("\tDescription: %s",d->description);
+        //qDebug("\tDescription: %s",d->description);
     }
 
     /* Loopback Address*/
     devs->loopbackAddr = (d->flags & PCAP_IF_LOOPBACK)?"yes":"no";
-    qDebug("\tLoopback: %s",(d->flags & PCAP_IF_LOOPBACK)?"yes":"no");
+    //qDebug("\tLoopback: %s",(d->flags & PCAP_IF_LOOPBACK)?"yes":"no");
 
     /* IP addresses */
     for(a=d->addresses;a;a=a->next) {
-        qDebug("\tAddress Family: #%d",a->addr->sa_family);
+        //qDebug("\tAddress Family: #%d",a->addr->sa_family);
         address * addresses = new address;
         switch(a->addr->sa_family)
         {
         case AF_INET:
-            qDebug("\tAddress Family Name: AF_INET");
+            //qDebug("\tAddress Family Name: AF_INET");
             addresses->saFamily = QString("AF_INET");
             if (a->addr)
             {
                 addresses->ipAddr = QString(iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
-                qDebug("\tAddress: %s",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
+                //qDebug("\tAddress: %s",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
             }
             if (a->netmask)
             {
                 addresses->netmask = QString(iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
-                qDebug("\tNetmask: %s",iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
+                //qDebug("\tNetmask: %s",iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
             }
             if (a->broadaddr)
             {
                 addresses->netmask = QString(iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
-                qDebug("\tBroadcast Address: %s",iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
+                //qDebug("\tBroadcast Address: %s",iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
             }
             if (a->dstaddr)
             {
                 addresses->netmask = QString(iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
-                qDebug("\tDestination Address: %s",iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
+                //qDebug("\tDestination Address: %s",iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
             }
             break;
 
         case AF_INET6:
-            qDebug("\tAddress Family Name: AF_INET6");
+            //qDebug("\tAddress Family Name: AF_INET6");
             addresses->saFamily = QString("AF_INET6");
 
             if (a->addr)
             {
                 addresses->ipAddr = QString(ip6tos(a->addr, ip6str, sizeof(ip6str)));
-                qDebug("\tAddress: %s", ip6tos(a->addr, ip6str, sizeof(ip6str)));
+                //qDebug("\tAddress: %s", ip6tos(a->addr, ip6str, sizeof(ip6str)));
             }
             break;
 
         default:
-            qDebug("\tAddress Family Name: Unknown");
+            //qDebug("\tAddress Family Name: Unknown");
             break;
         }
         devs->ipAddresses.append(addresses);

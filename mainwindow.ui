@@ -78,7 +78,7 @@
              <string/>
             </property>
             <property name="text">
-             <string>Select a NIC：</string>
+             <string>Select a NIC ( First item's selected by Default)：</string>
             </property>
             <property name="margin">
              <number>10</number>
@@ -207,6 +207,22 @@
       <widget class="QWidget" name="sniffer">
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
+         <widget class="QLabel" name="nicDesc">
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei UI</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>[ NIC DESCRIPTION ]</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <spacer name="horizontalSpacer_10">
@@ -222,7 +238,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="nicName">
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -239,7 +255,7 @@
              <string>NIC INFO</string>
             </property>
             <property name="frameShape">
-             <enum>QFrame::Box</enum>
+             <enum>QFrame::NoFrame</enum>
             </property>
             <property name="text">
              <string>[ NIC INFO ]</string>
@@ -266,7 +282,7 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="startBtn">
             <property name="statusTip">
              <string>开始</string>
             </property>
@@ -285,19 +301,42 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>80</width>
+              <width>40</width>
               <height>20</height>
              </size>
             </property>
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_4">
+           <widget class="QPushButton" name="stopBtn">
             <property name="statusTip">
              <string>结束</string>
             </property>
             <property name="text">
              <string>Stop</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_11">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QPushButton" name="backBtn">
+            <property name="text">
+             <string>Back</string>
             </property>
            </widget>
           </item>

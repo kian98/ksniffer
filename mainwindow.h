@@ -6,6 +6,7 @@
 #include <QString>
 #include "wdpcap.h"
 #include "devinfo.h"
+#include "capthread.h"
 
 namespace Ui {
 class MainWindow;
@@ -23,6 +24,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    CapThread *capThread = nullptr;
 
     DevInfo* ifget(pcap_if_t *d);
     char * iptos(u_long in);
