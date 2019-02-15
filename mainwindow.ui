@@ -30,7 +30,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="nic">
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -356,14 +356,14 @@
          </layout>
         </item>
         <item>
-         <widget class="QTableWidget" name="tableWidget">
+         <widget class="DataTable" name="dataTable">
           <property name="statusTip">
            <string>封包列表</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QTreeWidget" name="treeWidget">
+         <widget class="QTreeWidget" name="dataTree">
           <property name="statusTip">
            <string>封包详细信息</string>
           </property>
@@ -377,7 +377,7 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QTextEdit" name="textEdit">
+           <widget class="QTextEdit" name="packetText">
             <property name="statusTip">
              <string>十六进制数据</string>
             </property>
@@ -396,7 +396,7 @@
             </property>
             <layout class="QGridLayout" name="gridLayout">
              <item row="2" column="2">
-              <widget class="QLineEdit" name="lineEdit_7">
+              <widget class="QLineEdit" name="ipv4Num">
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
@@ -422,7 +422,7 @@
               </spacer>
              </item>
              <item row="3" column="2">
-              <widget class="QLineEdit" name="lineEdit_3">
+              <widget class="QLineEdit" name="icmpNum">
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
@@ -432,7 +432,7 @@
               </widget>
              </item>
              <item row="0" column="6">
-              <widget class="QLineEdit" name="lineEdit_4">
+              <widget class="QLineEdit" name="arpNum">
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
@@ -442,7 +442,7 @@
               </widget>
              </item>
              <item row="1" column="2">
-              <widget class="QLineEdit" name="lineEdit_2">
+              <widget class="QLineEdit" name="udpNum">
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
@@ -452,7 +452,7 @@
               </widget>
              </item>
              <item row="3" column="0">
-              <widget class="QLabel" name="label_6">
+              <widget class="QLabel" name="icmpCnt">
                <property name="text">
                 <string>ICMP包：</string>
                </property>
@@ -462,7 +462,7 @@
               </widget>
              </item>
              <item row="0" column="0">
-              <widget class="QLabel" name="label_4">
+              <widget class="QLabel" name="tcpCnt">
                <property name="text">
                 <string>TCP包：</string>
                </property>
@@ -472,7 +472,7 @@
               </widget>
              </item>
              <item row="3" column="4">
-              <widget class="QLabel" name="label_11">
+              <widget class="QLabel" name="otherCnt">
                <property name="text">
                 <string>其他：</string>
                </property>
@@ -482,7 +482,7 @@
               </widget>
              </item>
              <item row="2" column="0">
-              <widget class="QLabel" name="label_10">
+              <widget class="QLabel" name="ipv4Cnt">
                <property name="text">
                 <string>IPv4包：</string>
                </property>
@@ -492,7 +492,7 @@
               </widget>
              </item>
              <item row="1" column="4">
-              <widget class="QLabel" name="label_8">
+              <widget class="QLabel" name="httpCnt">
                <property name="text">
                 <string>HTTP包：</string>
                </property>
@@ -502,7 +502,7 @@
               </widget>
              </item>
              <item row="1" column="6">
-              <widget class="QLineEdit" name="lineEdit_5">
+              <widget class="QLineEdit" name="httpNum">
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
@@ -528,7 +528,7 @@
               </spacer>
              </item>
              <item row="0" column="2">
-              <widget class="QLineEdit" name="lineEdit">
+              <widget class="QLineEdit" name="tcpNum">
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
@@ -538,7 +538,7 @@
               </widget>
              </item>
              <item row="2" column="4">
-              <widget class="QLabel" name="label_9">
+              <widget class="QLabel" name="ipv6Cnt">
                <property name="text">
                 <string>IPv6包：</string>
                </property>
@@ -548,7 +548,7 @@
               </widget>
              </item>
              <item row="1" column="0">
-              <widget class="QLabel" name="label_5">
+              <widget class="QLabel" name="udpCnt">
                <property name="text">
                 <string>UDP包：</string>
                </property>
@@ -558,7 +558,7 @@
               </widget>
              </item>
              <item row="2" column="6">
-              <widget class="QLineEdit" name="lineEdit_6">
+              <widget class="QLineEdit" name="ipv6Num">
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
@@ -568,7 +568,7 @@
               </widget>
              </item>
              <item row="0" column="4">
-              <widget class="QLabel" name="label_7">
+              <widget class="QLabel" name="arpCnt">
                <property name="text">
                 <string>ARP包：</string>
                </property>
@@ -578,7 +578,7 @@
               </widget>
              </item>
              <item row="3" column="6">
-              <widget class="QLineEdit" name="lineEdit_8">
+              <widget class="QLineEdit" name="otherNum">
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
@@ -622,6 +622,11 @@
    <class>TreeWidget</class>
    <extends>QTreeWidget</extends>
    <header location="global">treewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>DataTable</class>
+   <extends>QTableWidget</extends>
+   <header location="global">datatable.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

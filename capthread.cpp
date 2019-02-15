@@ -16,8 +16,11 @@ void CapThread::run()
 {
     char errbuf[PCAP_ERRBUF_SIZE];
     u_int netmask = 0xffffff;
-    char packet_filter[] = "ip and udp";
+    char packet_filter[] = "udp";
     struct bpf_program fcode;
+    int res;
+    struct pcap_pkthdr *header;
+    const u_char *pkt_data;
 
     printf(this->nic->name.toLocal8Bit().data());
 
@@ -46,6 +49,7 @@ void CapThread::run()
         for(auto a : nic->ipAddresses){
             if(!a->netmask.isEmpty()){
                 netmask=ipConvertToInt(a->netmask);
+                qDebug() << ipConvertToInt("255.125.125.0")<<endl;
                 break;
             }
         }
@@ -65,10 +69,22 @@ void CapThread::run()
     qDebug("listening on ...");
 
     /* 开始捕捉 */
-    pcap_loop(adhandle, 0, packet_handler, nullptr);
+    //pcap_loop(adhandle, 0, packet_handler, nullptr);
+    /* 获取数据包 */
+    while((res = pcap_next_ex( adhandle, &header, &pkt_data)) >= 0){
+
+        if(res == 0)
+            /* 超时时间到 */
+            continue;
+        packet_handler(nullptr, header, pkt_data);
+    }
+
+    if(res == -1){
+        qDebug("Error reading the packets: %s\n", pcap_geterr(adhandle));
+    }
 }
 
-/* 回调函数，当收到每一个数据包时会被libpcap所调用 */
+/* 用于解析，当收到每一个数据包时会调用 */
 void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data)
 {
     struct tm *ltime;
@@ -78,6 +94,7 @@ void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, 
     u_int ip_len;
     u_short sport,dport;
     time_t local_tv_sec;
+    DataTableItem *dtItem = new DataTableItem;
 
     /* 将时间戳转换成可识别的格式 */
     local_tv_sec = header->ts.tv_sec;
@@ -86,10 +103,11 @@ void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, 
 
     /* 打印数据包的时间戳和长度 */
     qDebug("%s.%.6d len:%d ", timestr, header->ts.tv_usec, header->len);
+    dtItem->timeStamp = QString(timestr) + "." + QString::number(header->ts.tv_usec);
+    dtItem->len = header->len;
 
     /* 获得IP数据包头部的位置 */
-    ih = (ip_header *) (pkt_data +
-                        14); //以太网头部长度
+    ih = (ip_header *) (pkt_data + 14); //以太网头部长度
 
     /* 获得UDP首部的位置 */
     ip_len = (ih->ver_ihl & 0xf) * 4;
@@ -111,6 +129,12 @@ void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, 
            ih->daddr.byte3,
            ih->daddr.byte4,
            dport);
+    dtItem->source = QString("%1.%2.%3.%4").arg(ih->saddr.byte1).arg(ih->saddr.byte2).
+            arg(ih->saddr.byte3).arg(ih->saddr.byte4);
+    dtItem->dest = QString("%1.%2.%3.%4").arg(ih->daddr.byte1).arg(ih->daddr.byte2).
+            arg(ih->daddr.byte3).arg(ih->daddr.byte4);
+    dtItem->info.append(QString("Port: %1 to Port: %2 ").arg(sport).arg(dport));
+    emit sendTableData(dtItem);
 }
 
 u_int CapThread::ipConvertToInt(QString ip)

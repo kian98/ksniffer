@@ -32,14 +32,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     treewidget.cpp \
-    capthread.cpp
+    capthread.cpp \
+    datatable.cpp
 
 HEADERS += \
         mainwindow.h \
     wdpcap.h \
     treewidget.h \
     devinfo.h \
-    capthread.h
+    capthread.h \
+    datatable.h
 
 FORMS += \
         mainwindow.ui

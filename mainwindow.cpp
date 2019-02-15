@@ -54,7 +54,14 @@ MainWindow::MainWindow(QWidget *parent) :
         capThread->start();
         ui->stopBtn->setEnabled(true);
         ui->startBtn->setEnabled(false);
+
+        /* 抓包，在TableWidget中添加数据 */
+        ui->dataTable->setRowCount(0);
+        connect(capThread, &CapThread::sendTableData, ui->dataTable, &DataTable::addData, Qt::QueuedConnection);
+
     });
+
+
 
     /* 结束抓包按钮 */
     connect(ui->stopBtn, &QPushButton::clicked, [=](){
@@ -63,8 +70,11 @@ MainWindow::MainWindow(QWidget *parent) :
             delete capThread;
             capThread = nullptr;
         }
+
+        /* 设置按钮 */
         ui->stopBtn->setEnabled(false);
         ui->startBtn->setEnabled(true);
+        disconnect(capThread);
         qDebug("Stop");
     });
 
@@ -137,7 +147,7 @@ DevInfo* MainWindow::ifget(pcap_if_t *d)
     /* IP addresses */
     for(a=d->addresses;a;a=a->next) {
         //qDebug("\tAddress Family: #%d",a->addr->sa_family);
-        address * addresses = new address;
+        Address * addresses = new Address;
         switch(a->addr->sa_family)
         {
         case AF_INET:

@@ -4,7 +4,7 @@
 #include <QString>
 #include <QVector>
 
-struct address {
+struct Address {
     /* IP Address Family Name */
     QString saFamily = "";
 
@@ -32,7 +32,31 @@ struct DevInfo {
     QString loopbackAddr = "";
 
     /* IP Address */
-    QVector<address *> ipAddresses;
+    QVector<Address *> ipAddresses;
+};
+
+enum PROT{
+    TCP, UDP, IPv4, IPv6, ICMP, ARP, HTTP, OTHER
+};
+
+struct DataTableItem {
+    /* 时间戳 */
+    QString timeStamp = "";
+
+    /* 协议类型 */
+    int protocol = OTHER;
+
+    /* 源地址 */
+    QString source = "";
+
+    /* 目的地址 */
+    QString dest = "";
+
+    /* 数据包长度 */
+    uint len;
+
+    /* 详细信息 */
+    QString info = "";
 };
 
 #endif // DEVINFO_H

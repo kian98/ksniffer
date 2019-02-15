@@ -28,7 +28,7 @@ private:
 
     DevInfo* ifget(pcap_if_t *d);
     char * iptos(u_long in);
-    char* ip6tos(struct sockaddr *sockaddr, char *address, int addrlen);
+    char* ip6tos(struct sockaddr *sockaddr, char *Address, int addrlen);
 };
 
 #endif // MAINWINDOW_H
