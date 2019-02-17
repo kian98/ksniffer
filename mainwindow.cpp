@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 break;
             }
         }
-        capThread = new CapThread(nic);
+        capThread = new CapThread(this, nic);
         capThread->start();
         ui->stopBtn->setEnabled(true);
         ui->startBtn->setEnabled(false);
@@ -95,6 +95,8 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+/* 获取网卡设备列表 */
+/* 单独设置文件会报错，因此放在 mainwindown.cpp 中 */
 QVector<DevInfo *> MainWindow::getNicInfo()
 {
     pcap_if_t *alldevs;
@@ -130,64 +132,52 @@ DevInfo* MainWindow::ifget(pcap_if_t *d)
     DevInfo * devs = new DevInfo;
 
     /* 设备名(Name) */
-    //qDebug("%s",d->name);
     devs->name = QString(QLatin1String(d->name));
 
     /* 设备描述(Description) */
     if (d->description)
     {
         devs->description = QString(d->description);
-        //qDebug("\tDescription: %s",d->description);
     }
 
     /* Loopback Address*/
     devs->loopbackAddr = (d->flags & PCAP_IF_LOOPBACK)?"yes":"no";
-    //qDebug("\tLoopback: %s",(d->flags & PCAP_IF_LOOPBACK)?"yes":"no");
 
     /* IP addresses */
     for(a=d->addresses;a;a=a->next) {
-        //qDebug("\tAddress Family: #%d",a->addr->sa_family);
         Address * addresses = new Address;
         switch(a->addr->sa_family)
         {
         case AF_INET:
-            //qDebug("\tAddress Family Name: AF_INET");
             addresses->saFamily = QString("AF_INET");
             if (a->addr)
             {
                 addresses->ipAddr = QString(iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
-                //qDebug("\tAddress: %s",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
             }
             if (a->netmask)
             {
                 addresses->netmask = QString(iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
-                //qDebug("\tNetmask: %s",iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
-            }
+           }
             if (a->broadaddr)
             {
                 addresses->netmask = QString(iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
-                //qDebug("\tBroadcast Address: %s",iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
             }
             if (a->dstaddr)
             {
                 addresses->netmask = QString(iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
-                //qDebug("\tDestination Address: %s",iptos(((struct sockaddr_in *)a->dstaddr)->sin_addr.s_addr));
             }
             break;
 
         case AF_INET6:
-            //qDebug("\tAddress Family Name: AF_INET6");
             addresses->saFamily = QString("AF_INET6");
 
             if (a->addr)
             {
                 addresses->ipAddr = QString(ip6tos(a->addr, ip6str, sizeof(ip6str)));
-                //qDebug("\tAddress: %s", ip6tos(a->addr, ip6str, sizeof(ip6str)));
             }
             break;
 
         default:
-            //qDebug("\tAddress Family Name: Unknown");
             break;
         }
         devs->ipAddresses.append(addresses);

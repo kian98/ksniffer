@@ -363,7 +363,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QTreeWidget" name="dataTree">
+         <widget class="TreeWidget" name="dataTree">
           <property name="statusTip">
            <string>封包详细信息</string>
           </property>
