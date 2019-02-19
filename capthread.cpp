@@ -8,18 +8,22 @@ CapThread::CapThread(QMainWindow *w, DevInfo* nic)
     this->w = w;
 }
 
-void CapThread::CapThread::quit()
+CapThread::~CapThread()
 {
     pcap_close(adhandle);
+    qDebug()<<"close successfully";
+    requestInterruption();
+    quit();
+    wait();
 }
 
 void CapThread::run()
 {
     char errbuf[PCAP_ERRBUF_SIZE];
     u_int netmask = 0xffffff;
-    char packet_filter[] = "arp";
+    char packet_filter[] = "ip and tcp";
     struct bpf_program fcode;
-    int res;
+    int res = 0;
     struct pcap_pkthdr *header;
     const u_char *pkt_data;
 
@@ -72,7 +76,7 @@ void CapThread::run()
     /* 开始捕捉 */
     //pcap_loop(adhandle, 0, packet_handler, nullptr);
     /* 获取数据包 */
-    while((res = pcap_next_ex( adhandle, &header, &pkt_data)) >= 0){
+    while(!isInterruptionRequested() && (res = pcap_next_ex( adhandle, &header, &pkt_data)) >= 0){
 
         if(res == 0)
             /* 超时时间到 */
@@ -125,7 +129,7 @@ void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, 
                         14); //以太网头部长度
 
     /* 获得UDP首部的位置 */
-    ip_len = (ih->ver_ihl & 0xf) * 4;
+    ip_len = ih->ihl;
     uh = (udp_header *) ((u_char*)ih + ip_len);
 
     /* 将网络字节序列转换成主机字节序列 */
@@ -133,24 +137,21 @@ void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, 
     dport = ntohs( uh->dport );
 
     /* 打印IP地址和UDP端口 */
-    qDebug("%d.%d.%d.%d.%d -> %d.%d.%d.%d.%d\n",
-           ih->saddr.byte1,
-           ih->saddr.byte2,
-           ih->saddr.byte3,
-           ih->saddr.byte4,
-           sport,
-           ih->daddr.byte1,
-           ih->daddr.byte2,
-           ih->daddr.byte3,
-           ih->daddr.byte4,
-           dport);
-    dtItem->source = QString("%1.%2.%3.%4").arg(ih->saddr.byte1).arg(ih->saddr.byte2).
-            arg(ih->saddr.byte3).arg(ih->saddr.byte4);
-    dtItem->dest = QString("%1.%2.%3.%4").arg(ih->daddr.byte1).arg(ih->daddr.byte2).
-            arg(ih->daddr.byte3).arg(ih->daddr.byte4);
+    qDebug()<<QString("%1.%2.%3.%4.%5 -> %6.%7.%8.%9.%10\n")
+              .arg(ih->saddr[0]).arg(ih->saddr[1])
+            .arg(ih->saddr[2]).arg(ih->saddr[3])
+            .arg(sport)
+            .arg(ih->daddr[0]).arg(ih->daddr[1])
+            .arg(ih->daddr[2]).arg(ih->daddr[3])
+            .arg(dport);
+    dtItem->source = QString("%1.%2.%3.%4")
+            .arg(ih->saddr[0]).arg(ih->saddr[1])
+            .arg(ih->saddr[2]).arg(ih->saddr[3]);
+    dtItem->dest = QString("%1.%2.%3.%4")
+            .arg(ih->daddr[0]).arg(ih->daddr[1])
+            .arg(ih->daddr[2]).arg(ih->daddr[3]);
     dtItem->info.append(QString("Port: %1 to Port: %2 ").arg(sport).arg(dport));
     ethernet_parser(header->len, pkt_data);
-    qDebug()<<"continue";
     emit sendTableData(dtItem);
 }
 
@@ -190,12 +191,12 @@ QStringList CapThread::ethernet_parser(uint pktLen, const u_char *pkt_data)
     case 0x0800:
         /* IPv4 */
         dataStr << QString("Type: IPv4 (0x%1)").arg(eth->type, 4, 16, QLatin1Char('0'));
-        //return analyze_ip((u_char*)pkt+14,data,npacket);
+        dataStr.append(ip_parser(pktLen, pkt_data));
         break;
     case 0x86dd:
         /* IPv6 */
         dataStr << QString("Type: IPv6 (0x%1)").arg(eth->type, 4, 16, QLatin1Char('0'));
-        //return analyze_ip6((u_char*)pkt+14,data,npacket);			=
+        dataStr.append(ip6_parser(pktLen, pkt_data));
         break;
     default:
         dataStr << QString("Type: 0x%1").arg(eth->type, 4, 16, QLatin1Char('0'));
@@ -210,7 +211,7 @@ QStringList CapThread::arp_parser(const u_char *pkt_data)
     arp_header *arp;
     QStringList arpData;
 
-    arp = (arp_header *)(pkt_data + 14);
+    arp = (arp_header *)(pkt_data + IP_HEADER_OFFSET);
 
     arp->ar_hw = ntohs(arp->ar_hw);
     arp->ar_op = ntohs(arp->ar_op);
@@ -256,7 +257,7 @@ QStringList CapThread::arp_parser(const u_char *pkt_data)
             .arg(arp->ar_srcmac[5], 2, 16, QLatin1Char('0'))
             << QString("Sender IP address: %1.%2.%3.%4")
                .arg(arp->ar_srcip[0]).arg(arp->ar_srcip[1])
-               .arg(arp->ar_srcip[2]).arg(arp->ar_srcip[3])
+            .arg(arp->ar_srcip[2]).arg(arp->ar_srcip[3])
             << QString("Target MAC address: %1:%2:%3:%4:%5:%6")
                .arg(arp->ar_destmac[0], 2, 16, QLatin1Char('0'))
             .arg(arp->ar_destmac[1], 2, 16, QLatin1Char('0'))
@@ -266,13 +267,223 @@ QStringList CapThread::arp_parser(const u_char *pkt_data)
             .arg(arp->ar_destmac[5], 2, 16, QLatin1Char('0'))
             << QString("Target IP address: %1.%2.%3.%4")
                .arg(arp->ar_destip[0]).arg(arp->ar_destip[1])
-               .arg(arp->ar_destip[2]).arg(arp->ar_destip[3]);
+            .arg(arp->ar_destip[2]).arg(arp->ar_destip[3])
+            << "ARP";
     return arpData;
 }
 
 QStringList CapThread::ip_parser(uint pktLen, const u_char *pkt_data)
 {
+    ip_header *ipv4;
+    QStringList ipData;
 
+    ipv4 = (ip_header *)(pkt_data + IP_HEADER_OFFSET);
+    ipv4->tlen = ntohs(ipv4->tlen);
+
+    QString prot;
+    QStringList nextStrList;
+    uint offset = ipv4->ihl*4;
+    switch (ipv4->proto) {
+    case 1:
+        prot = "ICMP";
+        nextStrList.append(icmp_parser(pktLen, offset, pkt_data));
+        break;
+    case 6:
+        prot = "TCP";
+        nextStrList.append(tcp_parser(pktLen, offset, pkt_data, 4));
+        break;
+    case 17:
+        prot = "UDP";
+        nextStrList.append(udp_parser(pktLen, offset, pkt_data, 4));
+        break;
+    default:
+        return ipData;
+    }
+
+    ipData<<QString("Version: %1").arg(ipv4->version)
+         << QString("Header Length: %1 bytes (%2)").arg(ipv4->ihl * 4).arg(ipv4->ihl)
+         << QString("Differentiated Services Field: 0x%1").arg(ipv4->tos, 2, 16, QLatin1Char('0'))
+         << QString("Total Length: %1").arg(ipv4->tlen)
+         << QString("Identification: 0x%1").arg(ipv4->ihl, 4, 16, QLatin1Char('0'))
+         << QString("Flags: 0x%1").arg(ipv4->frag_off, 4, 16, QLatin1Char('0'))
+         << QString("Time to live: %1").arg(ipv4->ttl, 0)
+         << QString("Protocol: %1 (%2)").arg(prot).arg(ipv4->proto)
+         << QString("Header checksum: 0x%1").arg(ipv4->check, 4, 16, QLatin1Char('0'))
+         << QString("Source: %1.%2.%3.%4")
+            .arg(ipv4->saddr[0]).arg(ipv4->saddr[1])
+            .arg(ipv4->saddr[2]).arg(ipv4->saddr[3])
+            << QString("Destination: %1.%2.%3.%4")
+               .arg(ipv4->daddr[0]).arg(ipv4->daddr[1])
+            .arg(ipv4->daddr[2]).arg(ipv4->daddr[3]);
+    ipData.append(nextStrList);
+
+    return ipData;
+}
+
+QStringList CapThread::ip6_parser(uint pktLen, const u_char *pkt_data)
+{
+    ip6_header *ipv6;
+    QStringList ip6Data;
+
+    ipv6 = (ip6_header *)(pkt_data + IP_HEADER_OFFSET);
+    ipv6->plen = ntohs(ipv6->plen);
+
+    QString nextHeader;
+    QStringList nextStrList;
+    switch (ipv6->nh) {
+    case 0x3a:
+        nextHeader = "ICMPv6";
+        nextStrList.append(icmp6_parser(pktLen, 40, pkt_data));
+        break;
+    case 0x06:
+        nextHeader = "TCP";
+        nextStrList.append(tcp_parser(pktLen, 40, pkt_data, 6));
+        break;
+    case 0x11:
+        nextHeader = "UDP";
+        nextStrList.append(udp_parser(pktLen, 40, pkt_data, 6));
+        break;
+    default :
+        return ip6Data;
+    }
+
+    ip6Data << QString("Version: %1").arg(ipv6->version)
+            << QString("Traffic Class: 0x%1").arg(ipv6->flowtype, 2, 16, QLatin1Char('0'))
+            << QString("Flow Label: %1").arg(ipv6->flowid, 5, 16, QLatin1Char('0'))
+            << QString("Payload Length: %1").arg(ipv6->plen)
+            << QString("Flow label: %1").arg(ipv6->flowid, 5, 16, QLatin1Char('0'))
+            << nextHeader
+            << QString("Hop Limit: %1").arg(ipv6->hlim)
+            << QString("Source: %1:%2:%3:%4:%5:%6:%7:%8")
+               .arg(ipv6->saddr[0], 4, 16, QLatin1Char('0')).arg(ipv6->saddr[1], 4, 16, QLatin1Char('0'))
+            .arg(ipv6->saddr[2], 4, 16, QLatin1Char('0')).arg(ipv6->saddr[3], 4, 16, QLatin1Char('0'))
+            .arg(ipv6->saddr[4], 4, 16, QLatin1Char('0')).arg(ipv6->saddr[5], 4, 16, QLatin1Char('0'))
+            .arg(ipv6->saddr[5], 4, 16, QLatin1Char('0')).arg(ipv6->saddr[7], 4, 16, QLatin1Char('0'))
+            << QString("Destination: %1:%2:%3:%4:%5:%6:%7:%8")
+               .arg(ipv6->daddr[0], 4, 16, QLatin1Char('0')).arg(ipv6->daddr[1], 4, 16, QLatin1Char('0'))
+            .arg(ipv6->daddr[2], 4, 16, QLatin1Char('0')).arg(ipv6->daddr[3], 4, 16, QLatin1Char('0'))
+            .arg(ipv6->daddr[4], 4, 16, QLatin1Char('0')).arg(ipv6->daddr[5], 4, 16, QLatin1Char('0'))
+            .arg(ipv6->daddr[5], 4, 16, QLatin1Char('0')).arg(ipv6->daddr[7], 4, 16, QLatin1Char('0'));
+    ip6Data.append(nextStrList);
+
+    return ip6Data;
+}
+
+QStringList CapThread::icmp_parser(uint pktLen, uint offset,const u_char *pkt_data)
+{
+    icmp_header *icmp;
+    QStringList icmpData;
+
+    icmp = (icmp_header *)(pkt_data + (IP_HEADER_OFFSET + offset));
+    icmp->checksum = ntohs(icmp->checksum);
+    uint dataLength = pktLen - 14 - offset - 8;
+
+    icmpData << QString("Type: %1").arg(icmp->type)
+             << QString("COde: %1").arg(icmp->code)
+             << QString("Checksum: 0x%1").arg(icmp->checksum, 4, 16, QLatin1Char('0'))
+             << QString("Identifier: %1 (0x%2)").arg(icmp->id).arg(icmp->id, 4, 16, QLatin1Char('0'))
+             << QString("Sequence number: %1 (0x%2)").arg(icmp->seq).arg(icmp->seq, 4, 16, QLatin1Char('0'))
+             << QString("Data (%1 Bytes)").arg(dataLength)
+             << "ICMP";
+    return icmpData;
+}
+
+QStringList CapThread::icmp6_parser(uint pktLen, uint offset, const u_char *pkt_data)
+{
+    icmp6_header *icmp6;
+    QStringList icmp6Data;
+
+    icmp6 = (icmp6_header *)(pkt_data + (IP_HEADER_OFFSET + offset));
+    icmp6->checksum = ntohs(icmp6->checksum);
+    uint dataLength = pktLen - 14 - offset - 8;
+
+    icmp6Data << QString("Type: %1").arg(icmp6->type)
+              << QString("Code: %1").arg(icmp6->code)
+              << QString("Checksum: 0x%1").arg(icmp6->checksum, 4, 16, QLatin1Char('0'))
+              << QString("Data (%1 Bytes)").arg(dataLength)
+              << "ICMPv6";
+    return icmp6Data;
+}
+
+QStringList CapThread::tcp_parser(uint pktLen, uint offset, const u_char *pkt_data, int type)
+{
+    tcp_header *tcp;
+    uint headerLen;
+    QString flags;
+    QStringList tcpData;
+    QStringList nextStrList;
+    uint dataLength;
+
+    tcp = (tcp_header *)(pkt_data + (IP_HEADER_OFFSET + offset));
+    tcp->sport = ntohs(tcp->sport);
+    tcp->dport = ntohs(tcp->dport);
+    tcp->check = ntohs(tcp->check);
+
+    headerLen = tcp->doff * 4;
+    dataLength = pktLen - 14 - offset - headerLen;
+    flags = QString("%1%2%3%4%5%6%7%8%9").arg(tcp->res1, 4, 2, QLatin1Char('0'))
+            .arg(tcp->cwr, 1, 2).arg(tcp->ece, 1, 2).arg(tcp->urg, 1, 2).arg(tcp->ack, 1, 2)
+            .arg(tcp->psh, 1, 2).arg(tcp->rst, 1, 2).arg(tcp->syn, 1, 2).arg(tcp->fin, 1, 2);
+
+    if(tcp->dport == 80 || tcp->sport == 80){
+        qDebug()<<"HTTP!"<<"HTTP!"<<"HTTP!";
+        nextStrList = http_parser(pktLen, 14 + offset + headerLen, pkt_data);
+    }
+
+    /* TODO
+     *  SEQ 和 ACK 大小端转换
+     */
+
+    tcpData << QString("Source Port: %1").arg(tcp->sport)
+            << QString("Destination Port: %1").arg(tcp->dport)
+            << QString("Sequence number: %1").arg(tcp->seq)
+            << QString("Acknowledgment number: %1").arg(tcp->ack_seq)
+            << QString("Header Length； %1").arg(headerLen)
+            << QString("Flags: 0x%1 (%2)").arg(flags.toInt(nullptr, 2), 3, 16, QLatin1Char('0')).arg(flags.toInt(nullptr, 2), 12, 2, QLatin1Char('0'))
+            << QString("Window size value: %1").arg(tcp->window)
+            << QString("Checksum: 0x%1").arg(tcp->check, 4, 16, QLatin1Char('0'))
+            << QString("Urgent point: %1").arg(tcp->urg_ptr)
+            << QString("TCP payload (%1 Bytes)").arg(dataLength);
+    if(!nextStrList.empty()){
+        tcpData.append(nextStrList);
+    } else {
+        tcpData.append(((type == 4)?"TCP":"TCPv6"));
+    }
+
+    return tcpData;
+}
+
+QStringList CapThread::udp_parser(uint pktLen, uint offset, const u_char *pkt_data, int type)
+{
+    udp_header *udp;
+    QStringList udpData;
+
+    udp = (udp_header *)(pkt_data + (IP_HEADER_OFFSET + offset));
+
+    udp->sport = ntohs( udp->sport );
+    udp->dport = ntohs( udp->dport );
+    udp->len = ntohs( udp->len );
+    udp->crc = ntohs( udp->crc );
+
+    udpData << QString("Source Port: %1").arg(udp->sport)
+            << QString("Destination Port: %1").arg(udp->dport)
+            << QString("Length: %1").arg(udp->len)
+            << QString("Checksum: 0x%1").arg(udp->crc, 4, 16, QLatin1Char('0'))
+            << QString("Data (%1 Bytes)").arg(udp->len - 8)
+            << ((type == 4)?"UDP":"UDPv6");
+
+    return udpData;
+}
+
+QStringList CapThread::http_parser(uint pktLen, uint offset,const u_char *pkt_data)
+{
+    QStringList httpData;
+    QString ss;
+    for(uint i = offset;i<pktLen;i++){
+        ss.append((QString("%1").arg(pkt_data[i], 0, 16)));
+    }
+    qDebug()<<"---------"<<(QByteArray::fromHex(ss.toLatin1())).data();
+    return httpData;
 }
 
 u_int CapThread::ipConvertToInt(QString ip)

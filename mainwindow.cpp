@@ -75,7 +75,6 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->stopBtn->setEnabled(false);
         ui->startBtn->setEnabled(true);
         disconnect(capThread);
-        qDebug("Stop");
     });
 
     /* 返回到网卡选择 */
@@ -92,6 +91,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    if(capThread != nullptr && capThread->isRunning()){
+        capThread->quit();
+        delete capThread;
+        capThread = nullptr;
+    }
     delete ui;
 }
 

@@ -7,11 +7,12 @@
 #include "wdpcap.h"
 #include "devinfo.h"
 
+#define IP_HEADER_OFFSET 14
 #define PROTO_ICMP 1
 #define PROTO_TCP 6
 #define PROTO_UDP 17
 #define LITTLE_ENDIAN 1234
-#define BIG_ENDIAN    4321
+//#define BIG_ENDIAN    4321
 
 /* 数据包数据 */
 struct pktData {
@@ -24,8 +25,8 @@ class CapThread: public QThread
     Q_OBJECT
 public:
     CapThread(QMainWindow *w, DevInfo* nic);
+    ~CapThread();
     void run();
-    void quit();
 private:
     pcap_t *adhandle;
     DevInfo* nic;
@@ -37,6 +38,12 @@ private:
     QStringList ethernet_parser(uint pktLen, const u_char *pkt_data);
     QStringList arp_parser(const u_char *pkt_data);
     QStringList ip_parser(uint pktLen, const u_char *pkt_data);
+    QStringList ip6_parser(uint pktLen, const u_char *pkt_data);
+    QStringList icmp_parser(uint pktLen, uint offset, const u_char *pkt_data);
+    QStringList icmp6_parser(uint pktLen, uint offset, const u_char *pkt_data);
+    QStringList tcp_parser(uint pktLen, uint offset, const u_char *pkt_data, int type);
+    QStringList udp_parser(uint pktLen, uint offset, const u_char *pkt_data, int type);
+    QStringList http_parser(uint pktLen, uint offset,const u_char *pkt_data);
 signals:
     void sendTableData(DataTableItem *dtItem);
 };
@@ -72,22 +79,22 @@ struct ip_address{
     u_char byte4;
 };
 
-/* IPv4 首部 */
-struct ip_header{
-    u_char  ver_ihl;        // 版本 (4 bits) + 首部长度 (4 bits)
-    u_char  tos;            // 服务类型(Type of service)
-    u_short tlen;           // 总长(Total length)
-    u_short identification; // 标识(Identification)
-    u_short flags_fo;       // 标志位(Flags) (3 bits) + 段偏移量(Fragment offset) (13 bits)
-    u_char  ttl;            // 存活时间(Time to live)
-    u_char  proto;          // 协议(Protocol)
-    u_short crc;            // 首部校验和(Header checksum)
-    ip_address  saddr;      // 源地址(Source address)
-    ip_address  daddr;      // 目的地址(Destination address)
-    u_int   op_pad;         // 选项与填充(Option + Padding)
-};
+///* IPv4 首部 */
+//struct ip4h{
+//    u_char  ver_ihl;        // 版本 (4 bits) + 首部长度 (4 bits)
+//    u_char  tos;            // 服务类型(Type of service)
+//    u_short tlen;           // 总长(Total length)
+//    u_short identification; // 标识(Identification)
+//    u_short flags_fo;       // 标志位(Flags) (3 bits) + 段偏移量(Fragment offset) (13 bits)
+//    u_char  ttl;            // 存活时间(Time to live)
+//    u_char  proto;          // 协议(Protocol)
+//    u_short crc;            // 首部校验和(Header checksum)
+//    ip_address  saddr;      // 源地址(Source address)
+//    ip_address  daddr;      // 目的地址(Destination address)
+//    u_int   op_pad;         // 选项与填充(Option + Padding)
+//};
 
-//定义IP头
+//定义IPv4头
 struct ip_header
 {
 #if defined(LITTLE_ENDIAN)
@@ -104,13 +111,13 @@ struct ip_header
     u_char ttl;				//生存时间
     u_char proto;		//协议
     u_short check;		//校验和
-    u_int saddr;			//源地址
-    u_int daddr;			//目的地址
+    u_char saddr[4];			//源地址
+    u_char daddr[4];			//目的地址
     u_int	op_pad;		//选项等
 };
 
 //定义TCP头
-struct tcphdr
+struct tcp_header
 {
     u_short sport;							//源端口地址  16位
     u_short dport;							//目的端口地址 16位
@@ -153,17 +160,8 @@ struct udp_header{
     u_short crc;            // 校验和(Checksum)
 };
 
-//定义ICMP
-struct icmphdr
-{
-    u_char type;			//8位 类型
-    u_char code;			//8位 代码
-    u_char seq;			//序列号 8位
-    u_char chksum;		//8位校验和
-};
-
 //定义IPv6
-struct iphdr6
+struct ip6_header
 {
     u_int version:4,				//版本
         flowtype:8,			//流类型
@@ -175,16 +173,23 @@ struct iphdr6
     u_short daddr[8];			//目的地址
 };
 
-//定义ICMPv6
-struct icmphdr6
+//定义ICMP
+struct icmp_header
 {
     u_char type;			//8位 类型
     u_char code;			//8位 代码
-    u_char seq;			//序列号 8位
-    u_char chksum;		//8位校验和
-    u_char op_type;	//选项：类型
-    u_char op_len;		//选项：长度
-    u_char op_ethaddr[6];		//选项：链路层地址
+    u_short checksum;			//校验和 16位
+    u_short id;		//标识符 16位
+    u_short seq;    //序号  16位
+
+};
+
+//定义ICMPv6
+struct icmp6_header
+{
+    u_char type;			//8位 类型
+    u_char code;			//8位 代码
+    u_short checksum;			//校验和 16位
 };
 
 #endif // CAPTHREAD_H
