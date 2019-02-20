@@ -11,7 +11,6 @@ CapThread::CapThread(QMainWindow *w, DevInfo* nic)
 CapThread::~CapThread()
 {
     pcap_close(adhandle);
-    qDebug()<<"close successfully";
     requestInterruption();
     quit();
     wait();
@@ -21,13 +20,11 @@ void CapThread::run()
 {
     char errbuf[PCAP_ERRBUF_SIZE];
     u_int netmask = 0xffffff;
-    char packet_filter[] = "ip and tcp";
+    char packet_filter[] = "";
     struct bpf_program fcode;
     int res = 0;
     struct pcap_pkthdr *header;
     const u_char *pkt_data;
-
-    printf(this->nic->name.toLocal8Bit().data());
 
     /* 打开适配器 */
     if ( (adhandle= pcap_open(this->nic->name.toLocal8Bit().data(),  // 设备名
@@ -39,13 +36,15 @@ void CapThread::run()
                               errbuf     // 错误缓冲池
                               ) ) == nullptr)
     {
-        qDebug("\nUnable to open the adapter. %s is not supported by WinPcap\n");
+        // TODO
+        // MessageBox needs signals and slots
+        //QMessageBox::critical(w, "Not Supported", "Unable to open the adapter");
     }
 
     /* 检查数据链路层，为了简单，只考虑以太网 */
     if(pcap_datalink(adhandle) != DLT_EN10MB)
     {
-        qDebug("\nThis program works only on Ethernet networks.\n");
+        //QMessageBox::critical(w, "Ethernet Only", "This program works only on Ethernet networks.");
     }
 
     /* 如果接口没有地址，默认为一个C类的掩码 */
@@ -61,20 +60,15 @@ void CapThread::run()
     //编译过滤器
     if (pcap_compile(adhandle, &fcode, packet_filter, 1, netmask) <0 )
     {
-        qDebug("\nUnable to compile the packet filter. Check the syntax.\n");
+        //QMessageBox::critical(w, "Compile Error", "Unable to compile the packet filter.");
     }
 
     //设置过滤器
     if (pcap_setfilter(adhandle, &fcode)<0)
     {
-        qDebug("\nError setting the filter.\n");
+        //QMessageBox::critical(w, "Filter Error", "Error setting the filter.");
     }
 
-
-    qDebug("listening on ...");
-
-    /* 开始捕捉 */
-    //pcap_loop(adhandle, 0, packet_handler, nullptr);
     /* 获取数据包 */
     while(!isInterruptionRequested() && (res = pcap_next_ex( adhandle, &header, &pkt_data)) >= 0){
 
@@ -87,7 +81,7 @@ void CapThread::run()
         memset(data, 0, sizeof (pktData));
 
         if(data == nullptr){
-            QMessageBox::warning(w, "Error", "Memory Full");
+            //QMessageBox::critical(w, "Error", "Memory Full");
             break;
         }
         data->header = header;
@@ -99,6 +93,7 @@ void CapThread::run()
 
     if(res == -1){
         qDebug("Error reading the packets: %s\n", pcap_geterr(adhandle));
+        //QMessageBox::critical(w, "Error", "Error reading the packets");
     }
 }
 
@@ -107,52 +102,23 @@ void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, 
 {
     struct tm *ltime;
     char timestr[16];
-    ip_header *ih;
-    udp_header *uh;
-    u_int ip_len;
-    u_short sport,dport;
     time_t local_tv_sec;
-    DataTableItem *dtItem = new DataTableItem;
 
     /* 将时间戳转换成可识别的格式 */
     local_tv_sec = header->ts.tv_sec;
     ltime=localtime(&local_tv_sec);
     strftime( timestr, sizeof timestr, "%H:%M:%S", ltime);
 
-    /* 打印数据包的时间戳和长度 */
+    /* 数据包的时间戳和长度 */
     qDebug("%s.%.6d len:%d ", timestr, header->ts.tv_usec, header->len);
-    dtItem->timeStamp = QString(timestr) + "." + QString::number(header->ts.tv_usec);
-    dtItem->len = header->len;
+    QString timeStamp = QString(timestr) + "." + QString::number(header->ts.tv_usec).mid(0,2);
 
-    /* 获得IP数据包头部的位置 */
-    ih = (ip_header *) (pkt_data +
-                        14); //以太网头部长度
+    /* 解析结果 */
+    auto data = ethernet_parser(header->len, pkt_data);
+    data << timeStamp << QString("%1").arg(header->len, 0, 10);
 
-    /* 获得UDP首部的位置 */
-    ip_len = ih->ihl;
-    uh = (udp_header *) ((u_char*)ih + ip_len);
-
-    /* 将网络字节序列转换成主机字节序列 */
-    sport = ntohs( uh->sport );
-    dport = ntohs( uh->dport );
-
-    /* 打印IP地址和UDP端口 */
-    qDebug()<<QString("%1.%2.%3.%4.%5 -> %6.%7.%8.%9.%10\n")
-              .arg(ih->saddr[0]).arg(ih->saddr[1])
-            .arg(ih->saddr[2]).arg(ih->saddr[3])
-            .arg(sport)
-            .arg(ih->daddr[0]).arg(ih->daddr[1])
-            .arg(ih->daddr[2]).arg(ih->daddr[3])
-            .arg(dport);
-    dtItem->source = QString("%1.%2.%3.%4")
-            .arg(ih->saddr[0]).arg(ih->saddr[1])
-            .arg(ih->saddr[2]).arg(ih->saddr[3]);
-    dtItem->dest = QString("%1.%2.%3.%4")
-            .arg(ih->daddr[0]).arg(ih->daddr[1])
-            .arg(ih->daddr[2]).arg(ih->daddr[3]);
-    dtItem->info.append(QString("Port: %1 to Port: %2 ").arg(sport).arg(dport));
-    ethernet_parser(header->len, pkt_data);
-    emit sendTableData(dtItem);
+    qDebug()<<data;
+    emit sendTableData(data);
 }
 
 
@@ -200,9 +166,8 @@ QStringList CapThread::ethernet_parser(uint pktLen, const u_char *pkt_data)
         break;
     default:
         dataStr << QString("Type: 0x%1").arg(eth->type, 4, 16, QLatin1Char('0'));
-        break;
+        dataStr.append("Ethernet II");
     }
-    qDebug()<<dataStr;
     return dataStr;
 }
 
@@ -281,6 +246,7 @@ QStringList CapThread::ip_parser(uint pktLen, const u_char *pkt_data)
     ipv4->tlen = ntohs(ipv4->tlen);
 
     QString prot;
+    QString defaultProto;
     QStringList nextStrList;
     uint offset = ipv4->ihl*4;
     switch (ipv4->proto) {
@@ -297,7 +263,7 @@ QStringList CapThread::ip_parser(uint pktLen, const u_char *pkt_data)
         nextStrList.append(udp_parser(pktLen, offset, pkt_data, 4));
         break;
     default:
-        return ipData;
+        defaultProto = "IPv4";
     }
 
     ipData<<QString("Version: %1").arg(ipv4->version)
@@ -316,7 +282,9 @@ QStringList CapThread::ip_parser(uint pktLen, const u_char *pkt_data)
                .arg(ipv4->daddr[0]).arg(ipv4->daddr[1])
             .arg(ipv4->daddr[2]).arg(ipv4->daddr[3]);
     ipData.append(nextStrList);
-
+    if(defaultProto.size()!=0){
+        ipData.append(defaultProto);
+    }
     return ipData;
 }
 
@@ -329,6 +297,7 @@ QStringList CapThread::ip6_parser(uint pktLen, const u_char *pkt_data)
     ipv6->plen = ntohs(ipv6->plen);
 
     QString nextHeader;
+    QString defaultProto;
     QStringList nextStrList;
     switch (ipv6->nh) {
     case 0x3a:
@@ -344,7 +313,7 @@ QStringList CapThread::ip6_parser(uint pktLen, const u_char *pkt_data)
         nextStrList.append(udp_parser(pktLen, 40, pkt_data, 6));
         break;
     default :
-        return ip6Data;
+        defaultProto = "IPv6";
     }
 
     ip6Data << QString("Version: %1").arg(ipv6->version)
@@ -366,6 +335,9 @@ QStringList CapThread::ip6_parser(uint pktLen, const u_char *pkt_data)
             .arg(ipv6->daddr[5], 4, 16, QLatin1Char('0')).arg(ipv6->daddr[7], 4, 16, QLatin1Char('0'));
     ip6Data.append(nextStrList);
 
+    if(defaultProto.size()!=0){
+        ip6Data.append(defaultProto);
+    }
     return ip6Data;
 }
 
@@ -376,10 +348,11 @@ QStringList CapThread::icmp_parser(uint pktLen, uint offset,const u_char *pkt_da
 
     icmp = (icmp_header *)(pkt_data + (IP_HEADER_OFFSET + offset));
     icmp->checksum = ntohs(icmp->checksum);
+    icmp->id = ntohs(icmp->id);
     uint dataLength = pktLen - 14 - offset - 8;
 
     icmpData << QString("Type: %1").arg(icmp->type)
-             << QString("COde: %1").arg(icmp->code)
+             << QString("Code: %1").arg(icmp->code)
              << QString("Checksum: 0x%1").arg(icmp->checksum, 4, 16, QLatin1Char('0'))
              << QString("Identifier: %1 (0x%2)").arg(icmp->id).arg(icmp->id, 4, 16, QLatin1Char('0'))
              << QString("Sequence number: %1 (0x%2)").arg(icmp->seq).arg(icmp->seq, 4, 16, QLatin1Char('0'))
@@ -392,12 +365,18 @@ QStringList CapThread::icmp6_parser(uint pktLen, uint offset, const u_char *pkt_
 {
     icmp6_header *icmp6;
     QStringList icmp6Data;
+    QString type;
 
     icmp6 = (icmp6_header *)(pkt_data + (IP_HEADER_OFFSET + offset));
     icmp6->checksum = ntohs(icmp6->checksum);
     uint dataLength = pktLen - 14 - offset - 8;
+    if(icmp6->type == 0){
+        type = "Echo (ping) Reply";
+    }else if(icmp6->type == 8){
+        type = "Echo (ping) Request";
+    }
 
-    icmp6Data << QString("Type: %1").arg(icmp6->type)
+    icmp6Data << QString("Type: %1 " + type).arg(icmp6->type)
               << QString("Code: %1").arg(icmp6->code)
               << QString("Checksum: 0x%1").arg(icmp6->checksum, 4, 16, QLatin1Char('0'))
               << QString("Data (%1 Bytes)").arg(dataLength)
@@ -426,8 +405,7 @@ QStringList CapThread::tcp_parser(uint pktLen, uint offset, const u_char *pkt_da
             .arg(tcp->psh, 1, 2).arg(tcp->rst, 1, 2).arg(tcp->syn, 1, 2).arg(tcp->fin, 1, 2);
 
     if(tcp->dport == 80 || tcp->sport == 80){
-        qDebug()<<"HTTP!"<<"HTTP!"<<"HTTP!";
-        nextStrList = http_parser(pktLen, 14 + offset + headerLen, pkt_data);
+        nextStrList = http_parser(pktLen, 14 + offset + headerLen, pkt_data, type);
     }
 
     /* TODO
@@ -475,14 +453,22 @@ QStringList CapThread::udp_parser(uint pktLen, uint offset, const u_char *pkt_da
     return udpData;
 }
 
-QStringList CapThread::http_parser(uint pktLen, uint offset,const u_char *pkt_data)
+QStringList CapThread::http_parser(uint pktLen, uint offset,const u_char *pkt_data, int type)
 {
     QStringList httpData;
-    QString ss;
+    QString rawData;
     for(uint i = offset;i<pktLen;i++){
-        ss.append((QString("%1").arg(pkt_data[i], 0, 16)));
+        rawData.append((QString("%1").arg(pkt_data[i], 0, 16)));
     }
-    qDebug()<<"---------"<<(QByteArray::fromHex(ss.toLatin1())).data();
+    rawData = (QByteArray::fromHex(rawData.toLatin1()));
+    if(rawData.mid(0,3) == "GET"){
+        httpData << "Type: GET";
+    }else if(rawData.mid(0,4) == "POST"){
+        httpData << "Type: POST";
+    }else {
+        httpData << "Type: Unknown";
+    }
+    httpData.append((type == 4)?"HTTP":"HTTPv6");
     return httpData;
 }
 

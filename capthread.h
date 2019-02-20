@@ -43,9 +43,9 @@ private:
     QStringList icmp6_parser(uint pktLen, uint offset, const u_char *pkt_data);
     QStringList tcp_parser(uint pktLen, uint offset, const u_char *pkt_data, int type);
     QStringList udp_parser(uint pktLen, uint offset, const u_char *pkt_data, int type);
-    QStringList http_parser(uint pktLen, uint offset,const u_char *pkt_data);
+    QStringList http_parser(uint pktLen, uint offset,const u_char *pkt_data, int type);
 signals:
-    void sendTableData(DataTableItem *dtItem);
+    void sendTableData(QStringList data);
 };
 
 /* MAC 帧头部， Ethernet II 协议报头 */
