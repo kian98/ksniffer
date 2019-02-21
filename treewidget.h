@@ -10,6 +10,7 @@ class TreeWidget : public QTreeWidget
 public:
     explicit TreeWidget(QWidget *parent = nullptr);
     void addNicInfo(DevInfo *);
+    void addPacketInfo(QStringList data);
     QStringList getCurrentNicName();
 
 signals:

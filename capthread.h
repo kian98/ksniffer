@@ -14,24 +14,19 @@
 #define LITTLE_ENDIAN 1234
 //#define BIG_ENDIAN    4321
 
-/* 数据包数据 */
-struct pktData {
-    const struct pcap_pkthdr *header;
-    const u_char *pkt_data;
-};
 
 class CapThread: public QThread
 {
     Q_OBJECT
 public:
-    CapThread(QMainWindow *w, DevInfo* nic);
+    CapThread(QMainWindow *w, DevInfo* nic, QString pktSelected);
     ~CapThread();
     void run();
 private:
     pcap_t *adhandle;
     DevInfo* nic;
-    QVector<pktData *> pktVector;
     QMainWindow *w;
+    QString pktFilter;
     u_int ipConvertToInt(QString ip);
     void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data);
 
@@ -44,8 +39,9 @@ private:
     QStringList tcp_parser(uint pktLen, uint offset, const u_char *pkt_data, int type);
     QStringList udp_parser(uint pktLen, uint offset, const u_char *pkt_data, int type);
     QStringList http_parser(uint pktLen, uint offset,const u_char *pkt_data, int type);
+
 signals:
-    void sendTableData(QStringList data);
+    void sendData(QStringList data, uint len, const uchar *pkt_data);
 };
 
 /* MAC 帧头部， Ethernet II 协议报头 */

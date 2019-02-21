@@ -2,10 +2,11 @@
 #include <QMessageBox>
 #include <QDebug>
 
-CapThread::CapThread(QMainWindow *w, DevInfo* nic)
+CapThread::CapThread(QMainWindow *w, DevInfo* nic, QString pktSelected)
 {
     this->nic = nic;
     this->w = w;
+    this->pktFilter = pktSelected;
 }
 
 CapThread::~CapThread()
@@ -18,14 +19,26 @@ CapThread::~CapThread()
 
 void CapThread::run()
 {
+    qDebug()<<"run";
     char errbuf[PCAP_ERRBUF_SIZE];
     u_int netmask = 0xffffff;
-    char packet_filter[] = "";
     struct bpf_program fcode;
     int res = 0;
     struct pcap_pkthdr *header;
     const u_char *pkt_data;
+    const char *packet_filter;
 
+    if(pktFilter == "TCP")
+        packet_filter = "tcp";
+    else if(pktFilter == "UDP")
+        packet_filter = "udp";
+    else if(pktFilter == "ICMP")
+        packet_filter = "icmp";
+    else if(pktFilter == "ARP")
+        packet_filter = "arp";
+    else {
+        packet_filter = "";
+    }
     /* 打开适配器 */
     if ( (adhandle= pcap_open(this->nic->name.toLocal8Bit().data(),  // 设备名
                               65536,     // 要捕捉的数据包的部分
@@ -44,6 +57,7 @@ void CapThread::run()
     /* 检查数据链路层，为了简单，只考虑以太网 */
     if(pcap_datalink(adhandle) != DLT_EN10MB)
     {
+        qDebug()<<"This program works only on Ethernet networks.";
         //QMessageBox::critical(w, "Ethernet Only", "This program works only on Ethernet networks.");
     }
 
@@ -70,31 +84,32 @@ void CapThread::run()
     }
 
     /* 获取数据包 */
-    while(!isInterruptionRequested() && (res = pcap_next_ex( adhandle, &header, &pkt_data)) >= 0){
+    while( !isInterruptionRequested() && (res = pcap_next_ex( adhandle, &header, &pkt_data)) >= 0){
 
         if(res == 0)
             /* 超时时间到 */
             continue;
 
-        /* 申请存储内存空间 */
-        pktData *data = (pktData *)malloc(sizeof (pktData));
-        memset(data, 0, sizeof (pktData));
+//        /* 申请存储内存空间 */
+//        pktData *data = (pktData *)malloc(sizeof (pktData));
+//        memset(data, 0, sizeof (pktData));
 
-        if(data == nullptr){
-            //QMessageBox::critical(w, "Error", "Memory Full");
-            break;
-        }
-        data->header = header;
-        data->pkt_data = pkt_data;
-        pktVector.push_back(data);
+//        if(data == nullptr){
+//            //QMessageBox::critical(w, "Error", "Memory Full");
+//            break;
+//        }
+//        data->header = header;
+//        data->pkt_data = pkt_data;
+//        pktVector.push_back(data);
 
-        packet_handler(nullptr, pktVector.back()->header, pktVector.back()->pkt_data);
+        packet_handler(nullptr, header, pkt_data);
     }
 
     if(res == -1){
         qDebug("Error reading the packets: %s\n", pcap_geterr(adhandle));
         //QMessageBox::critical(w, "Error", "Error reading the packets");
     }
+    qDebug()<<"stop";
 }
 
 /* 用于解析，当收到每一个数据包时会调用 */
@@ -118,9 +133,8 @@ void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, 
     data << timeStamp << QString("%1").arg(header->len, 0, 10);
 
     qDebug()<<data;
-    emit sendTableData(data);
+    emit sendData(data, header->len, pkt_data);
 }
-
 
 QStringList CapThread::ethernet_parser(uint pktLen, const u_char *pkt_data)
 {
@@ -345,13 +359,19 @@ QStringList CapThread::icmp_parser(uint pktLen, uint offset,const u_char *pkt_da
 {
     icmp_header *icmp;
     QStringList icmpData;
+    QString type;
 
     icmp = (icmp_header *)(pkt_data + (IP_HEADER_OFFSET + offset));
     icmp->checksum = ntohs(icmp->checksum);
     icmp->id = ntohs(icmp->id);
     uint dataLength = pktLen - 14 - offset - 8;
+    if(icmp->type == 0){
+        type = "Echo (ping) Reply";
+    }else if(icmp->type == 8){
+        type = "Echo (ping) Request";
+    }
 
-    icmpData << QString("Type: %1").arg(icmp->type)
+    icmpData << QString("Type: %1 " + type).arg(icmp->type)
              << QString("Code: %1").arg(icmp->code)
              << QString("Checksum: 0x%1").arg(icmp->checksum, 4, 16, QLatin1Char('0'))
              << QString("Identifier: %1 (0x%2)").arg(icmp->id).arg(icmp->id, 4, 16, QLatin1Char('0'))
@@ -479,6 +499,5 @@ u_int CapThread::ipConvertToInt(QString ip)
     uintStr = QString("0x%1%2%3%4").arg(strList[0].toInt(), 2, 16, QLatin1Char('0'))
             .arg(strList[1].toInt(), 2, 16, QLatin1Char('0')).arg(strList[2].toInt(), 2, 16, QLatin1Char('0'))
             .arg(strList[3].toInt(), 2, 16, QLatin1Char('0'));
-    qDebug()<<uintStr;
     return uintStr.toUInt();
 }

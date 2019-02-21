@@ -30,19 +30,19 @@ DataTable::DataTable(QWidget *parent) : QTableWidget(parent)
     this->horizontalHeader()->setSectionResizeMode(DESTINATION, QHeaderView::ResizeToContents);
 }
 
-void DataTable::addData(QStringList data)
+void DataTable::addData(QStringList data, uint pktlen, const uchar *pkt_data)
 {
     int rowIndex;
     QString proto, timestamp, len, destAddr, sourceAddr, info;
 
     /* Ethernet II      [3]
      *    - ARP         [9]
-     *    - IPv4        []
-     *    - IPv6        []
-     *        - TCP     []
-     *        - UDP     []
-     *        - ICMP    []
-     *        - ICMPv6  []
+     *    - IPv4        [11]
+     *    - IPv6        [9]
+     *        - TCP     [10]
+     *        - UDP     [5]
+     *        - ICMP    [6]
+     *        - ICMPv6  [4]
      * Protocol Name    [1]
      * Timestamp        [1]
      * Packet Length    [1]

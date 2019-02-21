@@ -225,43 +225,18 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <spacer name="horizontalSpacer_10">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QLabel" name="nicName">
+           <widget class="QComboBox" name="pktSelect">
             <property name="sizePolicy">
-             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
             <property name="minimumSize">
              <size>
-              <width>456</width>
+              <width>0</width>
               <height>0</height>
              </size>
-            </property>
-            <property name="statusTip">
-             <string>NIC INFO</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::NoFrame</enum>
-            </property>
-            <property name="text">
-             <string>[ NIC INFO ]</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
             </property>
            </widget>
           </item>
@@ -345,6 +320,9 @@
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
             <property name="sizeHint" stdset="0">
              <size>
               <width>40</width>
@@ -357,6 +335,12 @@
         </item>
         <item>
          <widget class="DataTable" name="dataTable">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="statusTip">
            <string>封包列表</string>
           </property>
@@ -377,11 +361,11 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QTextEdit" name="packetText">
+           <widget class="TextEdit" name="packetText">
             <property name="statusTip">
              <string>十六进制数据</string>
             </property>
-            <property name="readOnly">
+            <property name="autoFillBackground">
              <bool>true</bool>
             </property>
            </widget>
@@ -627,6 +611,11 @@
    <class>DataTable</class>
    <extends>QTableWidget</extends>
    <header location="global">datatable.h</header>
+  </customwidget>
+  <customwidget>
+   <class>TextEdit</class>
+   <extends>QPlainTextEdit</extends>
+   <header location="global">textedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

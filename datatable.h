@@ -16,7 +16,7 @@ public:
     };
 
     explicit DataTable(QWidget *parent = nullptr);
-    void addData(QStringList data);
+    void addData(QStringList data, uint pktlen, const uchar *pkt_data);
 
 signals:
 

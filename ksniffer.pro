@@ -33,7 +33,8 @@ SOURCES += \
         mainwindow.cpp \
     treewidget.cpp \
     capthread.cpp \
-    datatable.cpp
+    datatable.cpp \
+    textedit.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +42,8 @@ HEADERS += \
     treewidget.h \
     devinfo.h \
     capthread.h \
-    datatable.h
+    datatable.h \
+    textedit.h
 
 FORMS += \
         mainwindow.ui

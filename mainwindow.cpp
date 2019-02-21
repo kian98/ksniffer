@@ -29,7 +29,8 @@ MainWindow::MainWindow(QWidget *parent) :
         QStringList curNicName = ui->nicTree->getCurrentNicName();
         ui->stackedWidget->setCurrentIndex(SNIFFER_SCENE);
         ui->nicDesc->setText(curNicName[0]);
-        ui->nicName->setText(curNicName[1]);
+        selectedNicName = curNicName[1];
+        ui->pktSelect->setCurrentIndex(0);
     });
 
     /* 取消选择，退出 */
@@ -41,27 +42,40 @@ MainWindow::MainWindow(QWidget *parent) :
     /* 设置按钮 Enabled */
     ui->stopBtn->setEnabled(false);
 
+    /* 设置下拉框 */
+    ui->pktSelect->addItem("Default");
+    ui->pktSelect->addItem("TCP");
+    ui->pktSelect->addItem("UDP");
+    ui->pktSelect->addItem("ICMP");
+    ui->pktSelect->addItem("ARP");
+
     /* 开始抓包按钮 */
     connect(ui->startBtn, &QPushButton::clicked, [=](){
+        for(int i =0;i<8;i++)pktCount[i] = 0;
+        pktVector.clear();
+        ui->dataTree->clear();
+
         DevInfo* nic = new DevInfo;
         for (auto nif : nicInfo){
-            if(ui->nicName->text() == nif->name){
+            if(selectedNicName == nif->name){
                 nic = nif;
                 break;
             }
         }
-        capThread = new CapThread(this, nic);
+        capThread = new CapThread(this, nic, ui->pktSelect->currentText());
         capThread->start();
+
         ui->stopBtn->setEnabled(true);
         ui->startBtn->setEnabled(false);
+        ui->pktSelect->setEditable(false);
 
         /* 抓包，在TableWidget中添加数据 */
         ui->dataTable->setRowCount(0);
-        connect(capThread, &CapThread::sendTableData, ui->dataTable, &DataTable::addData, Qt::QueuedConnection);
+        connect(capThread, &CapThread::sendData, ui->dataTable, &DataTable::addData, Qt::QueuedConnection);
 
+        /* 保存QStringList数据 */
+        connect(capThread, &CapThread::sendData, this, &MainWindow::saveData, Qt::QueuedConnection);
     });
-
-
 
     /* 结束抓包按钮 */
     connect(ui->stopBtn, &QPushButton::clicked, [=](){
@@ -74,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
         /* 设置按钮 */
         ui->stopBtn->setEnabled(false);
         ui->startBtn->setEnabled(true);
+        ui->pktSelect->setEditable(true);
         disconnect(capThread);
     });
 
@@ -86,6 +101,14 @@ MainWindow::MainWindow(QWidget *parent) :
             ui->stopBtn->setEnabled(false);
         }
         ui->stackedWidget->setCurrentIndex(NIC_SELECT_SCENE);
+        pktVector.clear();
+    });
+
+    /* 选中数据包显示详细信息 */
+    connect(ui->dataTable, &QTreeWidget::clicked, [=](){
+        auto index = ui->dataTable->currentRow();
+        ui->dataTree->addPacketInfo(pktVector.at(index));
+        ui->packetText->addRawData(pktRaw.at(index)->len, pktRaw.at(index)->pkt_data);
     });
 }
 
@@ -97,6 +120,50 @@ MainWindow::~MainWindow()
         capThread = nullptr;
     }
     delete ui;
+}
+
+void MainWindow::saveData(QStringList data, uint len, const uchar *pkt_data)
+{
+    pktVector.push_back(data);
+    pktData* rawData = new pktData;
+    rawData->len = len;
+    rawData->pkt_data = pkt_data;
+    pktRaw.push_back(rawData);
+    auto type = *(data.end() - 3);
+
+    if(type == "TCP"){
+        pktCount[0]++;pktCount[5]++;
+    }else if(type == "UDP"){
+        pktCount[1]++;pktCount[5]++;
+    }else if(type == "HTTP"){
+        pktCount[2]++;pktCount[5]++;
+    }else if(type == "ARP"){
+        pktCount[4]++;
+    }else if(type == "ICMP"){
+        pktCount[3]++;pktCount[5]++;
+    }else if(type == "IPv4"){
+        pktCount[5]++;
+    }else if(type == "TCPv6"){
+        pktCount[0]++;pktCount[6]++;
+    }else if(type == "UDPv6"){
+        pktCount[1]++;pktCount[6]++;
+    }else if(type == "HTTPv6"){
+        pktCount[2]++;pktCount[6]++;
+    }else if(type == "ICMPv6"){
+        pktCount[3]++;pktCount[6]++;
+    }else if(type == "IPv6"){
+        pktCount[6]++;
+    }else {
+        pktCount[7]++;
+    }
+    ui->tcpNum->setText(QString::number(pktCount[0]));
+    ui->udpNum->setText(QString::number(pktCount[1]));
+    ui->httpNum->setText(QString::number(pktCount[2]));
+    ui->icmpNum->setText(QString::number(pktCount[3]));
+    ui->arpNum->setText(QString::number(pktCount[4]));
+    ui->ipv4Num->setText(QString::number(pktCount[5]));
+    ui->ipv6Num->setText(QString::number(pktCount[6]));
+    ui->otherNum->setText(QString::number(pktCount[7]));
 }
 
 /* 获取网卡设备列表 */
@@ -161,7 +228,7 @@ DevInfo* MainWindow::ifget(pcap_if_t *d)
             if (a->netmask)
             {
                 addresses->netmask = QString(iptos(((struct sockaddr_in *)a->netmask)->sin_addr.s_addr));
-           }
+            }
             if (a->broadaddr)
             {
                 addresses->netmask = QString(iptos(((struct sockaddr_in *)a->broadaddr)->sin_addr.s_addr));
