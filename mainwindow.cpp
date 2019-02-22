@@ -42,6 +42,9 @@ MainWindow::MainWindow(QWidget *parent) :
     /* 设置按钮 Enabled */
     ui->stopBtn->setEnabled(false);
 
+    /* 下拉框不可编辑 */
+    ui->pktSelect->setEditable(false);
+
     /* 设置下拉框 */
     ui->pktSelect->addItem("Default");
     ui->pktSelect->addItem("TCP");
@@ -51,10 +54,23 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* 开始抓包按钮 */
     connect(ui->startBtn, &QPushButton::clicked, [=](){
+        /* 界面初始化 */
+        ui->tcpNum->setText("0");
+        ui->udpNum->setText("0");
+        ui->httpNum->setText("0");
+        ui->icmpNum->setText("0");
+        ui->arpNum->setText("0");
+        ui->ipv4Num->setText("0");
+        ui->ipv6Num->setText("0");
+        ui->otherNum->setText("0");
         for(int i =0;i<8;i++)pktCount[i] = 0;
         pktVector.clear();
+        pktRaw.clear();
         ui->dataTree->clear();
+        ui->dataTable->setRowCount(0);
+        ui->pktSelect->setEnabled(false);
 
+        /* 获取网卡名 */
         DevInfo* nic = new DevInfo;
         for (auto nif : nicInfo){
             if(selectedNicName == nif->name){
@@ -67,10 +83,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
         ui->stopBtn->setEnabled(true);
         ui->startBtn->setEnabled(false);
-        ui->pktSelect->setEditable(false);
 
         /* 抓包，在TableWidget中添加数据 */
-        ui->dataTable->setRowCount(0);
         connect(capThread, &CapThread::sendData, ui->dataTable, &DataTable::addData, Qt::QueuedConnection);
 
         /* 保存QStringList数据 */
@@ -88,7 +102,7 @@ MainWindow::MainWindow(QWidget *parent) :
         /* 设置按钮 */
         ui->stopBtn->setEnabled(false);
         ui->startBtn->setEnabled(true);
-        ui->pktSelect->setEditable(true);
+        ui->pktSelect->setEnabled(true);
         disconnect(capThread);
     });
 
@@ -102,6 +116,20 @@ MainWindow::MainWindow(QWidget *parent) :
         }
         ui->stackedWidget->setCurrentIndex(NIC_SELECT_SCENE);
         pktVector.clear();
+        ui->packetText->clear();
+        ui->dataTable->setRowCount(0);
+        ui->dataTree->clear();
+        ui->tcpNum->setText("0");
+        ui->udpNum->setText("0");
+        ui->httpNum->setText("0");
+        ui->icmpNum->setText("0");
+        ui->arpNum->setText("0");
+        ui->ipv4Num->setText("0");
+        ui->ipv6Num->setText("0");
+        ui->otherNum->setText("0");
+        ui->stopBtn->setEnabled(false);
+        ui->startBtn->setEnabled(true);
+        ui->pktSelect->setEnabled(true);
     });
 
     /* 选中数据包显示详细信息 */
@@ -127,7 +155,16 @@ void MainWindow::saveData(QStringList data, uint len, const uchar *pkt_data)
     pktVector.push_back(data);
     pktData* rawData = new pktData;
     rawData->len = len;
-    rawData->pkt_data = pkt_data;
+
+    /* 拷贝数据 */
+    uchar* dataCopy = (uchar *)malloc(sizeof (uchar) * len);
+    rawData->pkt_data = dataCopy;
+    while(len>0){
+        *dataCopy = *pkt_data;
+        dataCopy++;
+        pkt_data++;
+        len--;
+    }
     pktRaw.push_back(rawData);
     auto type = *(data.end() - 3);
 
