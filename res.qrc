@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icon">
+        <file>res/arpspoof.png</file>
+        <file>res/icmp.png</file>
+    </qresource>
+</RCC>

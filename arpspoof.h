@@ -1,0 +1,29 @@
+#ifndef ARPSPOOF_H
+#define ARPSPOOF_H
+
+#include <QWidget>
+#include "wdpcap.h"
+
+namespace Ui {
+class ArpSpoof;
+}
+
+class ArpSpoof : public QWidget
+{
+    Q_OBJECT
+
+public:
+    explicit ArpSpoof(QWidget *parent = nullptr, QString nicName = "");
+    ~ArpSpoof();
+
+private:
+    Ui::ArpSpoof *ui;
+    QString nicName;
+    pcap_t *fp;
+    bool keepSend;
+
+    void arpSpoofing(QString targetIP, QString targetMAC, QString spoofIP, QString spoofMAC);
+
+};
+
+#endif // ARPSPOOF_H

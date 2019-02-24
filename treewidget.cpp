@@ -120,7 +120,7 @@ void TreeWidget::addPacketInfo(QStringList data)
         }
     }else if(type == "IPv6" || type == "TCPv6" || type == "UDPv6"
              || type == "HTTPv6" || type == "ICMPv6"){
-        QTreeWidgetItem *ipv6 = new QTreeWidgetItem(this, QStringList("Internet Protocol Version 4"));
+        QTreeWidgetItem *ipv6 = new QTreeWidgetItem(this, QStringList("Internet Protocol Version 6"));
         ipv6->setExpanded(true);
         for(int i = 3;i < 3+9;i++){
             ipv6->addChild(new QTreeWidgetItem(ipv6, QStringList(data[i])));

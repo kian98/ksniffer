@@ -7,6 +7,7 @@
 #include "wdpcap.h"
 #include "devinfo.h"
 #include "capthread.h"
+#include "toolbox.h"
 
 namespace Ui {
 class MainWindow;
@@ -29,16 +30,20 @@ public:
     //int tcp, udp, http, icmp, arp, ipv4, ipv6, other;
     int pktCount[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
+    QString selectedNicName;
+
 private:
     Ui::MainWindow *ui;
     CapThread *capThread = nullptr;
-    QString selectedNicName;
     QVector<QStringList> pktVector;
     QVector<pktData*> pktRaw;
 
     DevInfo* ifget(pcap_if_t *d);
     char * iptos(u_long in);
     char* ip6tos(struct sockaddr *sockaddr, char *Address, int addrlen);
+    ToolBox* toolbox = nullptr;
+
+    void closeEvent(QCloseEvent *event);
 
 signals:
     void detailInfoRequest(int index);

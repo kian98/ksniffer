@@ -14,6 +14,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    /* 初始化工具箱，加快速度 */
+    toolbox = new ToolBox();
+
     /* 设置Stacke Widget初始索引页面 */
     ui->stackedWidget->setCurrentIndex(NIC_SELECT_SCENE);
 
@@ -31,6 +34,11 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->nicDesc->setText(curNicName[0]);
         selectedNicName = curNicName[1];
         ui->pktSelect->setCurrentIndex(0);
+
+        /* 获取当前位置，显示工具箱 */
+        toolbox->setNicName(selectedNicName);
+        toolbox->move(this->frameGeometry().x() - toolbox->frameSize().width() + 10, this->frameGeometry().y() + 100);
+        toolbox->show();
     });
 
     /* 取消选择，退出 */
@@ -130,6 +138,9 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->stopBtn->setEnabled(false);
         ui->startBtn->setEnabled(true);
         ui->pktSelect->setEnabled(true);
+
+        /* 关闭工具箱 */
+        toolbox->hide();
     });
 
     /* 选中数据包显示详细信息 */
@@ -142,12 +153,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete ui;
+}
+
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
     if(capThread != nullptr && capThread->isRunning()){
         capThread->quit();
         delete capThread;
         capThread = nullptr;
     }
-    delete ui;
+    toolbox->close();
 }
 
 void MainWindow::saveData(QStringList data, uint len, const uchar *pkt_data)

@@ -34,7 +34,9 @@ SOURCES += \
     treewidget.cpp \
     capthread.cpp \
     datatable.cpp \
-    textedit.cpp
+    textedit.cpp \
+    arpspoof.cpp \
+    toolbox.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -43,12 +45,19 @@ HEADERS += \
     devinfo.h \
     capthread.h \
     datatable.h \
-    textedit.h
+    textedit.h \
+    arpspoof.h \
+    toolbox.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    arpspoof.ui \
+    toolbox.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    res.qrc
