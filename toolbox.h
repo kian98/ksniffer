@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "arpspoof.h"
+#include "icmpflood.h"
 
 namespace Ui {
 class ToolBox;
@@ -16,13 +17,15 @@ public:
     explicit ToolBox(QWidget *parent = nullptr);
     ~ToolBox();
 
-    void setNicName(QString name);
+    void setNicInfo(QString name, QString ip);
 
 private:
     Ui::ToolBox *ui;
     ArpSpoof* arpSpoof = nullptr;
+    IcmpFlood* icmpFlood = nullptr;
 
     QString nicName;
+    QString nicIP;
 
     void closeEvent(QCloseEvent *event);
 };

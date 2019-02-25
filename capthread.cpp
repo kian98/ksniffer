@@ -258,6 +258,9 @@ QStringList CapThread::ip_parser(uint pktLen, const u_char *pkt_data)
 
     ipv4 = (ip_header *)(pkt_data + IP_HEADER_OFFSET);
     ipv4->tlen = ntohs(ipv4->tlen);
+    ipv4->id = ntohs(ipv4->id);
+    ipv4->check = ntohs(ipv4->check);
+    ipv4->frag_off = ntohs(ipv4->frag_off);
 
     QString prot;
     QString defaultProto;

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>80</width>
-    <height>200</height>
+    <width>82</width>
+    <height>220</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -21,7 +21,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <property name="spacing">
-    <number>0</number>
+    <number>10</number>
    </property>
    <property name="leftMargin">
     <number>0</number>
@@ -84,6 +84,9 @@
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <property name="spacing">
       <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>10</number>
      </property>
      <item>
       <widget class="QPushButton" name="icmpBtn">

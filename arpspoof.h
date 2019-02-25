@@ -19,7 +19,7 @@ public:
 private:
     Ui::ArpSpoof *ui;
     QString nicName;
-    pcap_t *fp;
+    pcap_t *fp = nullptr;
     bool keepSend;
 
     void arpSpoofing(QString targetIP, QString targetMAC, QString spoofIP, QString spoofMAC);

@@ -1,4 +1,5 @@
 #include "treewidget.h"
+#include <QDebug>
 
 TreeWidget::TreeWidget(QWidget *parent) : QTreeWidget(parent)
 {
@@ -73,7 +74,11 @@ QStringList TreeWidget::getCurrentNicName()
         curItem = curItem->parent();
     }
 
-    return {curItem->text(0).split(": ")[1].trimmed(), curItem->child(0)->text(0).split(": ")[1].trimmed()};
+    auto devDesc = curItem->text(0).split(": ")[1].trimmed();
+    auto devIP = curItem->child(curItem->childCount()-1)->child(0)->text(0).split(": ")[1].trimmed();
+    auto devName = curItem->child(0)->text(0).split(": ")[1].trimmed();
+
+    return {devDesc, devName, devIP};
 }
 
 void TreeWidget::addPacketInfo(QStringList data)

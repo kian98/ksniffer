@@ -22,6 +22,7 @@ ArpSpoof::ArpSpoof(QWidget *parent, QString nicName) :
         ui->startBtn->setEnabled(false);
         ui->stopBtn->setEnabled(false);
     }
+    ui->stopBtn->setEnabled(false);
 
     /* 设置正则表达式，限制输入格式 */
     QRegExp ipRx("^((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)$");
@@ -40,17 +41,20 @@ ArpSpoof::ArpSpoof(QWidget *parent, QString nicName) :
                 || ui->spoofIP->text().size() < 7 || ui->spoofMacAddr->text().size() < 17){
             ui->ArpResult->append("Wrong input! Check again!");
         }else{
+            ui->startBtn->setEnabled(false);
+            ui->stopBtn->setEnabled(true);
             keepSend = true;
             std::thread t(&ArpSpoof::arpSpoofing, this, ui->targetIP->text(),
                           ui->targetMacAddr->text(), ui->spoofIP->text(),
                           ui->spoofMacAddr->text());
             t.detach();
-
         }
     });
 
     /* 停止ARP欺骗 */
     connect(ui->stopBtn, &QPushButton::clicked, [=](){
+        ui->startBtn->setEnabled(true);
+        ui->stopBtn->setEnabled(false);
         keepSend = false;
     });
 }
@@ -80,8 +84,7 @@ void ArpSpoof::arpSpoofing(QString targetIP, QString targetMAC,
         eth.src[i] = static_cast<uchar>(spoofMAClist[i].toInt(nullptr, 16));
         eth.dest[i] = static_cast<uchar>(targetMAClist[i].toInt(nullptr, 16));
     }
-    eth.type = 0x0806;
-    eth.type = htons(eth.type);
+    eth.type = htons(0x0806);
     memcpy(packet, &eth, sizeof (eth));
 
     /* 设置ARP头部 */
@@ -123,4 +126,5 @@ void ArpSpoof::arpSpoofing(QString targetIP, QString targetMAC,
         ui->ArpResult->append("Successfully sent.");
         Sleep(60);
     }
+    pcap_close(fp);
 }

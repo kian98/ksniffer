@@ -29,14 +29,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     /* 选择网卡 */
     connect(ui->nicSelect, &QPushButton::clicked, [=](){
-        QStringList curNicName = ui->nicTree->getCurrentNicName();
+        QStringList curNicInfo = ui->nicTree->getCurrentNicName();
         ui->stackedWidget->setCurrentIndex(SNIFFER_SCENE);
-        ui->nicDesc->setText(curNicName[0]);
-        selectedNicName = curNicName[1];
+        ui->nicDesc->setText(curNicInfo[0]);
+        selectedNicName = curNicInfo[1];
         ui->pktSelect->setCurrentIndex(0);
 
         /* 获取当前位置，显示工具箱 */
-        toolbox->setNicName(selectedNicName);
+        toolbox->setNicInfo(selectedNicName, curNicInfo[2]);
         toolbox->move(this->frameGeometry().x() - toolbox->frameSize().width() + 10, this->frameGeometry().y() + 100);
         toolbox->show();
     });
@@ -164,7 +164,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         delete capThread;
         capThread = nullptr;
     }
-    toolbox->close();
+
 }
 
 void MainWindow::saveData(QStringList data, uint len, const uchar *pkt_data)

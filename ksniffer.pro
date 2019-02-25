@@ -36,7 +36,8 @@ SOURCES += \
     datatable.cpp \
     textedit.cpp \
     arpspoof.cpp \
-    toolbox.cpp
+    toolbox.cpp \
+    icmpflood.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -47,12 +48,14 @@ HEADERS += \
     datatable.h \
     textedit.h \
     arpspoof.h \
-    toolbox.h
+    toolbox.h \
+    icmpflood.h
 
 FORMS += \
         mainwindow.ui \
     arpspoof.ui \
-    toolbox.ui
+    toolbox.ui \
+    icmpflood.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

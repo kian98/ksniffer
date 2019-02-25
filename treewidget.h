@@ -13,6 +13,10 @@ public:
     void addPacketInfo(QStringList data);
     QStringList getCurrentNicName();
 
+private:
+    QString devName;
+    QString devIP;
+
 signals:
 
 public slots:

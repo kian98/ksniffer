@@ -31,6 +31,10 @@
   <property name="windowTitle">
    <string>ARP Spoofing</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="res.qrc">
+    <normaloff>:/icon/res/arpspoof.png</normaloff>:/icon/res/arpspoof.png</iconset>
+  </property>
   <property name="statusTip">
    <string/>
   </property>
@@ -375,6 +379,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>
