@@ -37,6 +37,7 @@ private:
     CapThread *capThread = nullptr;
     QVector<QStringList> pktVector;
     QVector<pktData*> pktRaw;
+    QString customFilter = "";
 
     DevInfo* ifget(pcap_if_t *d);
     char * iptos(u_long in);
@@ -50,6 +51,7 @@ signals:
 
 public slots:
     void saveData(QStringList data, uint len,const uchar *pkt_data);
+    void setFilter(QString f);
 };
 
 #endif // MAINWINDOW_H

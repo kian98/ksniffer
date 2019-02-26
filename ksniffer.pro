@@ -37,7 +37,8 @@ SOURCES += \
     textedit.cpp \
     arpspoof.cpp \
     toolbox.cpp \
-    icmpflood.cpp
+    icmpflood.cpp \
+    filterdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -49,13 +50,15 @@ HEADERS += \
     textedit.h \
     arpspoof.h \
     toolbox.h \
-    icmpflood.h
+    icmpflood.h \
+    filterdialog.h
 
 FORMS += \
         mainwindow.ui \
     arpspoof.ui \
     toolbox.ui \
-    icmpflood.ui
+    icmpflood.ui \
+    filterdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

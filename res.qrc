@@ -2,5 +2,7 @@
     <qresource prefix="/icon">
         <file>res/arpspoof.png</file>
         <file>res/icmp.png</file>
+        <file>res/add .png</file>
+        <file>res/delete.png</file>
     </qresource>
 </RCC>

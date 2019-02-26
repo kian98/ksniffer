@@ -19,7 +19,7 @@ class CapThread: public QThread
 {
     Q_OBJECT
 public:
-    CapThread(QMainWindow *w, DevInfo* nic, QString pktSelected);
+    CapThread(QMainWindow *w, DevInfo* nic, QString pktSelected, QString customFilter);
     ~CapThread();
     void run();
 private:
@@ -27,6 +27,7 @@ private:
     DevInfo* nic;
     QMainWindow *w;
     QString pktFilter;
+    QString customFilter;
     u_int ipConvertToInt(QString ip);
     void packet_handler(u_char *param, const struct pcap_pkthdr *header, const u_char *pkt_data);
 

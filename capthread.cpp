@@ -2,11 +2,12 @@
 #include <QMessageBox>
 #include <QDebug>
 
-CapThread::CapThread(QMainWindow *w, DevInfo* nic, QString pktSelected)
+CapThread::CapThread(QMainWindow *w, DevInfo* nic, QString pktSelected, QString customFilter)
 {
     this->nic = nic;
     this->w = w;
     this->pktFilter = pktSelected;
+    this->customFilter = customFilter;
 }
 
 CapThread::~CapThread()
@@ -36,9 +37,15 @@ void CapThread::run()
         packet_filter = "icmp";
     else if(pktFilter == "ARP")
         packet_filter = "arp";
-    else {
-        packet_filter = "";
+    else if(pktFilter == "< User-defined >"){
+        QByteArray str = customFilter.toLatin1();
+        char* str_data = new char;
+        strcpy(str_data, str.data());
+        packet_filter = str_data;
+    } else {
+        packet_filter = "(icmp)";
     }
+    qDebug() << QString("%1").arg(packet_filter);
     /* 打开适配器 */
     if ( (adhandle= pcap_open(this->nic->name.toLocal8Bit().data(),  // 设备名
                               65536,     // 要捕捉的数据包的部分
@@ -74,6 +81,7 @@ void CapThread::run()
     //编译过滤器
     if (pcap_compile(adhandle, &fcode, packet_filter, 1, netmask) <0 )
     {
+        qDebug()<<"Compile error";
         //QMessageBox::critical(w, "Compile Error", "Unable to compile the packet filter.");
     }
 

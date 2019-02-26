@@ -3,7 +3,9 @@
 #include <QStackedWidget>
 #include <QMessageBox>
 #include <QDebug>
+#include <QListView>
 #include "treewidget.h"
+#include "filterdialog.h"
 
 const int NIC_SELECT_SCENE = 0;
 const int SNIFFER_SCENE = 1;
@@ -54,11 +56,23 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pktSelect->setEditable(false);
 
     /* 设置下拉框 */
+    /* 设置item高度 */
+    ui->pktSelect->setView(new QListView);
     ui->pktSelect->addItem("Default");
     ui->pktSelect->addItem("TCP");
     ui->pktSelect->addItem("UDP");
     ui->pktSelect->addItem("ICMP");
     ui->pktSelect->addItem("ARP");
+    ui->pktSelect->addItem("< User-defined >");
+
+    connect(ui->pktSelect, QOverload<int>::of(&QComboBox::activated), [=](int index){
+        if(index == 5){
+            FilterDialog* fd = new FilterDialog(this);
+            fd->setModal(true);
+            fd->show();
+            connect(fd, &FilterDialog::sendCustomFilter, this, &MainWindow::setFilter);
+        }
+    });
 
     /* 开始抓包按钮 */
     connect(ui->startBtn, &QPushButton::clicked, [=](){
@@ -86,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent) :
                 break;
             }
         }
-        capThread = new CapThread(this, nic, ui->pktSelect->currentText());
+        capThread = new CapThread(this, nic, ui->pktSelect->currentText(), customFilter);
         capThread->start();
 
         ui->stopBtn->setEnabled(true);
@@ -165,6 +179,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
         capThread = nullptr;
     }
 
+}
+
+void MainWindow::setFilter(QString f)
+{
+    this->customFilter = f;
 }
 
 void MainWindow::saveData(QStringList data, uint len, const uchar *pkt_data)
