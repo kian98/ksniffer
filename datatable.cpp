@@ -55,7 +55,7 @@ void DataTable::addData(QStringList data, uint pktlen, const uchar *pkt_data)
         sourceAddr = data[ 3 + 5].split(": ")[1];
         destAddr = data[ 3 + 7].split(": ")[1];
         if(data[ 3 + 7 ].split(": ")[1] == "00:00:00:00:00:00"){
-            info = QString("Who has %1? Tell %2").arg(data[ 3 + 6].split(": ")[1]).arg(data[ 3 + 8].split(": ")[1]);
+            info = QString("Who has %1? Tell %2").arg(data[ 3 + 8].split(": ")[1]).arg(data[ 3 + 6].split(": ")[1]);
         }else {
             info = QString("%1 is at %2").arg(data[ 3 + 6].split(": ")[1]).arg(data[ 3 + 5].split(": ")[1]);
         }

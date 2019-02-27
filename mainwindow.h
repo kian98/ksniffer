@@ -52,6 +52,7 @@ signals:
 public slots:
     void saveData(QStringList data, uint len,const uchar *pkt_data);
     void setFilter(QString f);
+    void popWarningBox(QString title, QString text);
 };
 
 #endif // MAINWINDOW_H

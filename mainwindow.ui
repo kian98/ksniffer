@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>KSniffer</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="res.qrc">
+    <normaloff>:/icon/res/network.png</normaloff>:/icon/res/network.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <property name="leftMargin">
@@ -30,7 +34,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="nic">
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -151,6 +155,18 @@
             </item>
             <item>
              <widget class="QPushButton" name="nicSelect">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>35</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>35</height>
+               </size>
+              </property>
               <property name="statusTip">
                <string>选中</string>
               </property>
@@ -177,6 +193,18 @@
             </item>
             <item>
              <widget class="QPushButton" name="nicCancel">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>35</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>35</height>
+               </size>
+              </property>
               <property name="statusTip">
                <string>取消</string>
               </property>
@@ -659,6 +687,8 @@
    <header location="global">textedit.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="res.qrc"/>
+ </resources>
  <connections/>
 </ui>

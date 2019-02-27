@@ -43,6 +43,7 @@ private:
 
 signals:
     void sendData(QStringList data, uint len, const uchar *pkt_data);
+    void sendWaningMsg(QString title, QString text);
 };
 
 /* MAC 帧头部， Ethernet II 协议报头 */

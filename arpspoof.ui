@@ -53,6 +53,9 @@
         <property name="text">
          <string>Current NIC:</string>
         </property>
+        <property name="indent">
+         <number>31</number>
+        </property>
        </widget>
       </item>
       <item>

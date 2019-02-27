@@ -29,8 +29,10 @@ private:
 
     void directIcmpFlood();
     void fakeIpIcmpFlood();
+    void closeEvent(QCloseEvent *event);
 signals:
     void sendText(QString text);
+    void beClosed();
 
 public slots:
     void onRadioBtnChecked();

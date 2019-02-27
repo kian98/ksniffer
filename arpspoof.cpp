@@ -13,6 +13,7 @@ ArpSpoof::ArpSpoof(QWidget *parent, QString nicName) :
 {
     ui->setupUi(this);
     this->nicName = nicName;
+    ui->nicName->setText(nicName);
 
     /* 关闭时销毁 */
     this->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -118,13 +119,23 @@ void ArpSpoof::arpSpoofing(QString targetIP, QString targetMAC,
 
 
     /* 发送数据包 */
+    int count = 200;
     while(keepSend){
         if (pcap_sendpacket(fp, packet, 42 /* size */) != 0)
         {
             ui->ArpResult->append("Error sending the ARP packet.");
         }
-        ui->ArpResult->append("Successfully sent.");
-        Sleep(60);
+        if(count ==0){
+            ui->ArpResult->append(" - 200 ARP packets sent.");
+            count = 200;
+        }
+        count --;
+        Sleep(10);
     }
     pcap_close(fp);
+}
+
+void ArpSpoof::closeEvent(QCloseEvent *event)
+{
+    emit beClosed();
 }

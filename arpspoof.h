@@ -21,8 +21,12 @@ private:
     QString nicName;
     pcap_t *fp = nullptr;
     bool keepSend;
+    void closeEvent(QCloseEvent *event);
 
     void arpSpoofing(QString targetIP, QString targetMAC, QString spoofIP, QString spoofMAC);
+
+signals:
+    void beClosed();
 
 };
 

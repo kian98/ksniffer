@@ -43,6 +43,9 @@
        <property name="text">
         <string>Current IP:</string>
        </property>
+       <property name="indent">
+        <number>21</number>
+       </property>
       </widget>
      </item>
      <item>

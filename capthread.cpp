@@ -20,7 +20,7 @@ CapThread::~CapThread()
 
 void CapThread::run()
 {
-    qDebug()<<"run";
+//    qDebug()<<"run";
     char errbuf[PCAP_ERRBUF_SIZE];
     u_int netmask = 0xffffff;
     struct bpf_program fcode;
@@ -43,9 +43,9 @@ void CapThread::run()
         strcpy(str_data, str.data());
         packet_filter = str_data;
     } else {
-        packet_filter = "(icmp)";
+        packet_filter = "";
     }
-    qDebug() << QString("%1").arg(packet_filter);
+
     /* 打开适配器 */
     if ( (adhandle= pcap_open(this->nic->name.toLocal8Bit().data(),  // 设备名
                               65536,     // 要捕捉的数据包的部分
@@ -56,16 +56,13 @@ void CapThread::run()
                               errbuf     // 错误缓冲池
                               ) ) == nullptr)
     {
-        // TODO
-        // MessageBox needs signals and slots
-        //QMessageBox::critical(w, "Not Supported", "Unable to open the adapter");
+        emit sendWaningMsg("Not Supported", "Unable to open the adapter.");
     }
 
     /* 检查数据链路层，为了简单，只考虑以太网 */
     if(pcap_datalink(adhandle) != DLT_EN10MB)
     {
-        qDebug()<<"This program works only on Ethernet networks.";
-        //QMessageBox::critical(w, "Ethernet Only", "This program works only on Ethernet networks.");
+        emit sendWaningMsg("Ethernet Only", "This program works only on Ethernet networks.");
     }
 
     /* 如果接口没有地址，默认为一个C类的掩码 */
@@ -81,14 +78,11 @@ void CapThread::run()
     //编译过滤器
     if (pcap_compile(adhandle, &fcode, packet_filter, 1, netmask) <0 )
     {
-        qDebug()<<"Compile error";
-        //QMessageBox::critical(w, "Compile Error", "Unable to compile the packet filter.");
-    }
-
+        emit sendWaningMsg("Compile Error", "Unable to compile the packet filter. Start without filter.");
+    }else if (pcap_setfilter(adhandle, &fcode)<0)
     //设置过滤器
-    if (pcap_setfilter(adhandle, &fcode)<0)
     {
-        //QMessageBox::critical(w, "Filter Error", "Error setting the filter.");
+        emit sendWaningMsg("Filter Error", "Error setting the filter.");
     }
 
     /* 获取数据包 */
@@ -97,27 +91,13 @@ void CapThread::run()
         if(res == 0)
             /* 超时时间到 */
             continue;
-
-//        /* 申请存储内存空间 */
-//        pktData *data = (pktData *)malloc(sizeof (pktData));
-//        memset(data, 0, sizeof (pktData));
-
-//        if(data == nullptr){
-//            //QMessageBox::critical(w, "Error", "Memory Full");
-//            break;
-//        }
-//        data->header = header;
-//        data->pkt_data = pkt_data;
-//        pktVector.push_back(data);
-
         packet_handler(nullptr, header, pkt_data);
     }
 
     if(res == -1){
-        qDebug("Error reading the packets: %s\n", pcap_geterr(adhandle));
-        //QMessageBox::critical(w, "Error", "Error reading the packets");
+        //emit sendWaningMsg("Error", QString("Error reading the packets: %1.").arg(pcap_geterr(adhandle)));
     }
-    qDebug()<<"stop";
+//    qDebug()<<"stop";
 }
 
 /* 用于解析，当收到每一个数据包时会调用 */
@@ -133,14 +113,14 @@ void CapThread::packet_handler(u_char *param, const struct pcap_pkthdr *header, 
     strftime( timestr, sizeof timestr, "%H:%M:%S", ltime);
 
     /* 数据包的时间戳和长度 */
-    qDebug("%s.%.6d len:%d ", timestr, header->ts.tv_usec, header->len);
+//    qDebug("%s.%.6d len:%d ", timestr, header->ts.tv_usec, header->len);
     QString timeStamp = QString(timestr) + "." + QString::number(header->ts.tv_usec).mid(0,2);
 
     /* 解析结果 */
     auto data = ethernet_parser(header->len, pkt_data);
     data << timeStamp << QString("%1").arg(header->len, 0, 10);
 
-    qDebug()<<data;
+//    qDebug()<<data;
     emit sendData(data, header->len, pkt_data);
 }
 

@@ -19,6 +19,10 @@
   <property name="windowTitle">
    <string>Set Capture Filter</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="res.qrc">
+    <normaloff>:/icon/res/network.png</normaloff>:/icon/res/network.png</iconset>
+  </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
     <number>15</number>

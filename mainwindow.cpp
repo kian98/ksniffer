@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     /* 初始化工具箱，加快速度 */
-    toolbox = new ToolBox();
+    toolbox = new ToolBox(this);
 
     /* 设置Stacke Widget初始索引页面 */
     ui->stackedWidget->setCurrentIndex(NIC_SELECT_SCENE);
@@ -111,6 +111,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
         /* 保存QStringList数据 */
         connect(capThread, &CapThread::sendData, this, &MainWindow::saveData, Qt::QueuedConnection);
+
+        /* 设置报错信息窗口 */
+        connect(capThread, &CapThread::sendWaningMsg, this, &MainWindow::popWarningBox);
     });
 
     /* 结束抓包按钮 */
@@ -178,7 +181,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
         delete capThread;
         capThread = nullptr;
     }
-
+    toolbox->close();
 }
 
 void MainWindow::setFilter(QString f)
@@ -254,8 +257,9 @@ QVector<DevInfo *> MainWindow::getNicInfo()
     char* char_PCAP_SRC_IF_STRING = string_array.data();
     if (pcap_findalldevs_ex(char_PCAP_SRC_IF_STRING, nullptr, &alldevs, errbuf) == -1)
     {
-        qDebug("Error in pcap_findalldevs: %s\n",errbuf);
-        exit(1);
+        QMessageBox *msgBox = new QMessageBox(QMessageBox::Warning, "Fail to Start", "Error in pcap_findalldevs");
+        msgBox->setModal(true);
+        msgBox->show();
     }
 
     /* 扫描列表并打印每一项 */
@@ -366,4 +370,11 @@ char* MainWindow::ip6tos(struct sockaddr *sockaddr, char *address, int addrlen)
                    NI_NUMERICHOST) != 0) address = nullptr;
 
     return address;
+}
+
+void MainWindow::popWarningBox(QString title, QString text)
+{
+    QMessageBox *msgBox = new QMessageBox(QMessageBox::Warning, title, text);
+    msgBox->setModal(true);
+    msgBox->show();
 }

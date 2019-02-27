@@ -26,6 +26,8 @@ private:
 
     QString nicName;
     QString nicIP;
+    bool arpClosed = false;
+    bool icmpClosed = false;
 
     void closeEvent(QCloseEvent *event);
 };

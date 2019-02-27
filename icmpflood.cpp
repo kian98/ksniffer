@@ -16,6 +16,9 @@ IcmpFlood::IcmpFlood(QWidget *parent, QString nicName, QString nicIP) :
 
     ui->nicName->setText(this->nicIP);
 
+    /* 关闭时销毁 */
+    this->setAttribute(Qt::WA_DeleteOnClose, true);
+
     /* 设置IP地址格式 */
     QRegExp ipRx("^((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)$");
     QRegExpValidator* IPValidator = new QRegExpValidator(ipRx);
@@ -91,13 +94,6 @@ void IcmpFlood::onRadioBtnChecked()
         break;
     }
 }
-
-//void IcmpFlood::directIcmpFlood()
-//{
-//    char errbuf[PCAP_ERRBUF_SIZE];
-//    u_char packet[74];
-//    QStringList targetIPlist = ui->targetIP->text().split(".");
-//}
 
 u_short get_ip_checksum(char* ip_hdr)
 {
@@ -225,4 +221,9 @@ void IcmpFlood::fakeIpIcmpFlood()
     emit sendText("  **** Stop ****");
     pcap_close(fp);
 
+}
+
+void IcmpFlood::closeEvent(QCloseEvent *event)
+{
+    emit beClosed();
 }

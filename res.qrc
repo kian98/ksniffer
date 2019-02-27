@@ -4,5 +4,7 @@
         <file>res/icmp.png</file>
         <file>res/add .png</file>
         <file>res/delete.png</file>
+        <file>res/network.png</file>
+        <file>res/ioStat.png</file>
     </qresource>
 </RCC>
