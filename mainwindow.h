@@ -43,11 +43,15 @@ private:
     char * iptos(u_long in);
     char* ip6tos(struct sockaddr *sockaddr, char *Address, int addrlen);
     ToolBox* toolbox = nullptr;
+    QTimer *pktCountSender;
+    int m_sendCount;
 
     void closeEvent(QCloseEvent *event);
 
 signals:
     void detailInfoRequest(int index);
+    void sendPktCount(int time, int pCount[]);
+    void clearIOChart();
 
 public slots:
     void saveData(QStringList data, uint len,const uchar *pkt_data);

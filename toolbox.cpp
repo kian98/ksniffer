@@ -1,5 +1,6 @@
 #include "toolbox.h"
 #include "ui_toolbox.h"
+#include "mainwindow.h"
 
 #include <QDebug>
 
@@ -32,7 +33,15 @@ ToolBox::ToolBox(QWidget *parent) :
             this->icmpClosed = true;
         });
     });
+
+    ioStats= new IOStats;
+    this->ioClosed = false;
+    connect(this, &ToolBox::passPktCount, ioStats, &IOStats::refreshChart);
+    connect(this, &ToolBox::passClearSignal, ioStats, &IOStats::clearChart);
+
     connect(ui->ioBtn, &QPushButton::clicked, [=](){
+        ioStats->show();
+        ioStats->isCustomized = false;
     });
 }
 
@@ -58,6 +67,17 @@ void ToolBox::closeEvent(QCloseEvent *event)
     if(icmpFlood != nullptr && !this->icmpClosed){
         icmpFlood->close();
     }
+    ioStats->close();
 }
 
-
+void ToolBox::hideEvent(QHideEvent *event)
+{
+    if(arpSpoof != nullptr && !this->arpClosed){
+        arpSpoof->close();
+    }
+    if(icmpFlood != nullptr && !this->icmpClosed){
+        icmpFlood->close();
+    }
+    ioStats->clearChart();
+    ioStats->hide();
+}

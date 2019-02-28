@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT += charts
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -38,7 +39,8 @@ SOURCES += \
     arpspoof.cpp \
     toolbox.cpp \
     icmpflood.cpp \
-    filterdialog.cpp
+    filterdialog.cpp \
+    iostats.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -51,14 +53,16 @@ HEADERS += \
     arpspoof.h \
     toolbox.h \
     icmpflood.h \
-    filterdialog.h
+    filterdialog.h \
+    iostats.h
 
 FORMS += \
         mainwindow.ui \
     arpspoof.ui \
     toolbox.ui \
     icmpflood.ui \
-    filterdialog.ui
+    filterdialog.ui \
+    iostats.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

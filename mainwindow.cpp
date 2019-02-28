@@ -75,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
     /* 开始抓包按钮 */
+    pktCountSender = new QTimer(this);
     connect(ui->startBtn, &QPushButton::clicked, [=](){
         /* 界面初始化 */
         ui->tcpNum->setText("0");
@@ -106,6 +107,27 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->stopBtn->setEnabled(true);
         ui->startBtn->setEnabled(false);
 
+        /* 流量统计定时器 */
+        /* 重新connect， 出于某种未知原因，需要在每次点击开始按钮时都重新connect */
+        connect(this, &MainWindow::sendPktCount, toolbox, &ToolBox::passPktCount);
+        connect(this, &MainWindow::clearIOChart, toolbox, &ToolBox::passClearSignal);
+        emit clearIOChart();
+
+        pktCountSender->start(1000);
+        m_sendCount = 0;
+        connect(pktCountSender, &QTimer::timeout, [=](){
+            ui->tcpNum->setText(QString::number(pktCount[0]));
+            ui->udpNum->setText(QString::number(pktCount[1]));
+            ui->httpNum->setText(QString::number(pktCount[2]));
+            ui->icmpNum->setText(QString::number(pktCount[3]));
+            ui->arpNum->setText(QString::number(pktCount[4]));
+            ui->ipv4Num->setText(QString::number(pktCount[5]));
+            ui->ipv6Num->setText(QString::number(pktCount[6]));
+            ui->otherNum->setText(QString::number(pktCount[7]));
+            m_sendCount ++;
+            emit sendPktCount(m_sendCount, pktCount);
+        });
+
         /* 抓包，在TableWidget中添加数据 */
         connect(capThread, &CapThread::sendData, ui->dataTable, &DataTable::addData, Qt::QueuedConnection);
 
@@ -123,6 +145,10 @@ MainWindow::MainWindow(QWidget *parent) :
             delete capThread;
             capThread = nullptr;
         }
+
+        pktCountSender->stop();
+        disconnect(this, &MainWindow::sendPktCount, toolbox, &ToolBox::passPktCount);
+        disconnect(this, &MainWindow::clearIOChart, toolbox, &ToolBox::passClearSignal);
 
         /* 设置按钮 */
         ui->stopBtn->setEnabled(false);
@@ -155,6 +181,15 @@ MainWindow::MainWindow(QWidget *parent) :
         ui->stopBtn->setEnabled(false);
         ui->startBtn->setEnabled(true);
         ui->pktSelect->setEnabled(true);
+
+        /* 重置发送计数 */
+        if(pktCountSender->isActive()){
+            pktCountSender->stop();
+            emit clearIOChart();
+            m_sendCount = 0;
+        }
+        disconnect(this, &MainWindow::sendPktCount, toolbox, &ToolBox::passPktCount);
+        disconnect(this, &MainWindow::clearIOChart, toolbox, &ToolBox::passClearSignal);
 
         /* 关闭工具箱 */
         toolbox->hide();
@@ -232,14 +267,6 @@ void MainWindow::saveData(QStringList data, uint len, const uchar *pkt_data)
     }else {
         pktCount[7]++;
     }
-    ui->tcpNum->setText(QString::number(pktCount[0]));
-    ui->udpNum->setText(QString::number(pktCount[1]));
-    ui->httpNum->setText(QString::number(pktCount[2]));
-    ui->icmpNum->setText(QString::number(pktCount[3]));
-    ui->arpNum->setText(QString::number(pktCount[4]));
-    ui->ipv4Num->setText(QString::number(pktCount[5]));
-    ui->ipv6Num->setText(QString::number(pktCount[6]));
-    ui->otherNum->setText(QString::number(pktCount[7]));
 }
 
 /* 获取网卡设备列表 */

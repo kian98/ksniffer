@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "arpspoof.h"
 #include "icmpflood.h"
+#include "iostats.h"
 
 namespace Ui {
 class ToolBox;
@@ -23,13 +24,21 @@ private:
     Ui::ToolBox *ui;
     ArpSpoof* arpSpoof = nullptr;
     IcmpFlood* icmpFlood = nullptr;
+    IOStats* ioStats = nullptr;
 
     QString nicName;
     QString nicIP;
     bool arpClosed = false;
     bool icmpClosed = false;
+    bool ioClosed = false;
 
     void closeEvent(QCloseEvent *event);
+    void hideEvent(QHideEvent *event);
+
+signals:
+    void passPktCount(int time, int pCount[]);
+    void passClearSignal();
+
 };
 
 #endif // TOOLBOX_H
