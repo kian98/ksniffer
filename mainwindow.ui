@@ -10,6 +10,11 @@
     <height>695</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <family>Microsoft YaHei UI</family>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>KSniffer</string>
   </property>
@@ -34,7 +39,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="nic">
        <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -45,7 +50,7 @@
             <property name="font">
              <font>
               <family>Microsoft YaHei UI</family>
-              <pointsize>14</pointsize>
+              <pointsize>16</pointsize>
               <weight>50</weight>
               <bold>false</bold>
              </font>
@@ -78,6 +83,18 @@
           </item>
           <item>
            <widget class="QLabel" name="label_2">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+              <pointsize>10</pointsize>
+             </font>
+            </property>
             <property name="statusTip">
              <string/>
             </property>
@@ -158,13 +175,13 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>35</height>
+                <height>32</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>35</height>
+                <height>32</height>
                </size>
               </property>
               <property name="statusTip">
@@ -196,13 +213,13 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>35</height>
+                <height>32</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
-                <height>35</height>
+                <height>32</height>
                </size>
               </property>
               <property name="statusTip">
@@ -297,6 +314,11 @@
               <width>16777215</width>
               <height>28</height>
              </size>
+            </property>
+            <property name="font">
+             <font>
+              <family>Microsoft YaHei UI</family>
+             </font>
             </property>
             <property name="styleSheet">
              <string notr="true"/>

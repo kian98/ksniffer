@@ -67,7 +67,7 @@ void DataTable::addData(QStringList data, uint pktlen, const uchar *pkt_data)
         }else if(proto != "IPv4"){
             info = QString("Port: %1 → Port: %2 ").arg(data[ 3 + 11 + 1 - 1].split(": ")[1]).arg(data[ 3 + 11 + 2 - 1].split(": ")[1]);
             if(proto == "HTTP"){
-                QString httpType = (*(data.end() - 4)).split(": ")[1];
+                QString httpType = (*(data.end() - 5)).split(": ")[1];
                 if(httpType != "Unknown")
                     info.append("  Type: " + httpType);
             }
@@ -75,7 +75,7 @@ void DataTable::addData(QStringList data, uint pktlen, const uchar *pkt_data)
             info = data[3+8-1];
         }
 
-    }else if (proto == "ICMPv6" || proto == "TCPv6" || proto == "UDPv6" || proto == "IPv6") {
+    }else if (proto == "ICMPv6" || proto == "TCPv6" || proto == "UDPv6" ||proto == "HTTPv6" || proto == "IPv6") {
         sourceAddr = data[ 3 + 8 - 1].split(": ")[1];
         destAddr = data[ 3 + 9 - 1].split(": ")[1];
     }else if(proto == "Ethernet II"){

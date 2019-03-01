@@ -5,6 +5,7 @@ TreeWidget::TreeWidget(QWidget *parent) : QTreeWidget(parent)
 {
     /* Set Header Invisiable */
     this->setHeaderHidden(true);
+    this->setStyleSheet("QTreeWidget::item{height:25px}");
 }
 
 void TreeWidget::addNicInfo(DevInfo *devInfo)

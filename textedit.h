@@ -9,7 +9,7 @@ class TextEdit : public QPlainTextEdit
 public:
     explicit TextEdit(QWidget *parent = nullptr);
 
-    void addRawData(uint len, const uchar* pkt_data);
+    void addRawData(uint len, const uchar* pkt_data, QStringList data);
 
 signals:
 

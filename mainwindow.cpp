@@ -196,10 +196,10 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
     /* 选中数据包显示详细信息 */
-    connect(ui->dataTable, &QTreeWidget::clicked, [=](){
+    connect(ui->dataTable, &DataTable::clicked, [=](){
         auto index = ui->dataTable->currentRow();
         ui->dataTree->addPacketInfo(pktVector.at(index));
-        ui->packetText->addRawData(pktRaw.at(index)->len, pktRaw.at(index)->pkt_data);
+        ui->packetText->addRawData(pktRaw.at(index)->len, pktRaw.at(index)->pkt_data, pktVector.at(index));
     });
 }
 

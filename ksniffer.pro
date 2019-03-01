@@ -54,7 +54,8 @@ HEADERS += \
     toolbox.h \
     icmpflood.h \
     filterdialog.h \
-    iostats.h
+    iostats.h \
+    commonhelper.h
 
 FORMS += \
         mainwindow.ui \

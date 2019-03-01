@@ -12,13 +12,22 @@ IOStats::IOStats(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    // 创建平滑曲线上点的序列
+    /* 创建平滑曲线上点的序列 */
     lineSeries = new QLineSeries();
     lineSeries->setName("spline");
 
-    // 创建散列点的序列
+    /* 创建散列点的序列 */
     scatterSeries = new QScatterSeries();
     scatterSeries->setMarkerSize(8);
+
+    /* 散点图点标签 */
+    valueLabel = new QLabel(this);
+    valueLabel->setStyleSheet(QString("QLabel{color:#3e4145; font-family:\"Microsoft Yahei\"; font-size:12px; font-weight:bold;"
+                                      " background-color:rgba(110, 160, 160, 51); border-radius:4px; text-align:center;}"));
+    valueLabel->setFixedSize(44, 24);
+    valueLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+    valueLabel->hide();
+    connect(scatterSeries, &QScatterSeries::hovered, this, &IOStats::slotPointHoverd);
 
     /* 使用点的序列创建图表 */
     ioChart = ui->ioChartView->chart();
@@ -114,4 +123,16 @@ void IOStats::wheelEvent(QWheelEvent *event)
     if(abs(curTime - axisX->max()) < 2){
         isCustomized = false;
     }
+}
+
+void IOStats::slotPointHoverd(const QPointF &point, bool state)
+{
+    if (state) {
+        valueLabel->setText(QString::asprintf("%1.0f", point.y()));
+        QPoint curPos = mapFromGlobal(QCursor::pos());
+        valueLabel->move(curPos.x() - valueLabel->width() / 2, curPos.y() - valueLabel->height() * 2);//移动数值
+        valueLabel->show();
+    }
+    else
+        valueLabel->hide();
 }

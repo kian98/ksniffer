@@ -28,6 +28,11 @@
     <height>400</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <family>Microsoft YaHei UI</family>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>ARP Spoofing</string>
   </property>

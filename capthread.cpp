@@ -471,7 +471,11 @@ QStringList CapThread::http_parser(uint pktLen, uint offset,const u_char *pkt_da
     for(uint i = offset;i<pktLen;i++){
         rawData.append((QString("%1").arg(pkt_data[i], 0, 16)));
     }
-    rawData = (QByteArray::fromHex(rawData.toLatin1()));
+    QStringList dataList = rawData.split("da");
+    rawData.clear();
+    for(auto d : dataList){
+        rawData.append(QByteArray::fromHex(d.toLatin1()) + "\n");
+    }
     if(rawData.mid(0,3) == "GET"){
         httpData << "Type: GET";
     }else if(rawData.mid(0,4) == "POST"){
@@ -479,6 +483,7 @@ QStringList CapThread::http_parser(uint pktLen, uint offset,const u_char *pkt_da
     }else {
         httpData << "Type: Unknown";
     }
+    httpData << rawData;
     httpData.append((type == 4)?"HTTP":"HTTPv6");
     return httpData;
 }

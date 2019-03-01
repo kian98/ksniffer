@@ -23,7 +23,9 @@ private:
     QChart *ioChart;
     QLineSeries *lineSeries;
     QScatterSeries *scatterSeries;
+    QLabel *valueLabel;
     void closeEvent(QCloseEvent *event);
+    void slotPointHoverd(const QPointF &point, bool state);
 
     int curTime = 0;
     int curCount = 0;

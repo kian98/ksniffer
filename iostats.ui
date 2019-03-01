@@ -41,6 +41,11 @@
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
+     <property name="font">
+      <font>
+       <family>Microsoft YaHei UI</family>
+      </font>
+     </property>
     </widget>
    </item>
   </layout>
