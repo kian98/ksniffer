@@ -6,6 +6,7 @@
         <file>res/delete.png</file>
         <file>res/network.png</file>
         <file>res/ioStat.png</file>
+        <file>res/scan.png</file>
     </qresource>
     <qresource prefix="/stylesheet">
         <file>res/ksnifferStyleSheet.qss</file>

@@ -15,6 +15,7 @@ ToolBox::ToolBox(QWidget *parent) :
     ui->arpBtn->setIcon(QIcon(":/icon/res/arpspoof.png"));
     ui->icmpBtn->setIcon(QIcon(":/icon/res/icmp.png"));
     ui->ioBtn->setIcon(QIcon(":/icon/res/ioStat.png"));
+    ui->scanBtn->setIcon(QIcon(":/icon/res/scan.png"));
 
     /* 点击出现工具窗口 */
     connect(ui->arpBtn, &QPushButton::clicked, [=](){
@@ -34,6 +35,15 @@ ToolBox::ToolBox(QWidget *parent) :
         });
     });
 
+    connect(ui->scanBtn, &QPushButton::clicked, [=](){
+        lanScan= new LanScan(nullptr, nicName, nicIP);
+        lanScan->show();
+        this->scanClosed = false;
+        connect(lanScan, &LanScan::beClosed, [=](){
+            this->icmpClosed = true;
+        });
+    });
+
     ioStats= new IOStats;
     this->ioClosed = false;
     connect(this, &ToolBox::passPktCount, ioStats, &IOStats::refreshChart);
@@ -43,6 +53,8 @@ ToolBox::ToolBox(QWidget *parent) :
         ioStats->show();
         ioStats->isCustomized = false;
     });
+
+
 }
 
 ToolBox::~ToolBox()
@@ -66,6 +78,9 @@ void ToolBox::closeEvent(QCloseEvent *event)
     }
     if(icmpFlood != nullptr && !this->icmpClosed){
         icmpFlood->close();
+    }
+    if(lanScan != nullptr && !this->scanClosed){
+        lanScan->close();
     }
     ioStats->close();
 }

@@ -29,6 +29,8 @@ CONFIG += c++11
 INCLUDEPATH += D:/WpdPack/Include/
 LIBS += -L D:/WpdPack/Lib/x64/ -lwpcap -lws2_32
 
+LIBS += -liphlpapi
+
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
@@ -40,7 +42,9 @@ SOURCES += \
     toolbox.cpp \
     icmpflood.cpp \
     filterdialog.cpp \
-    iostats.cpp
+    iostats.cpp \
+    lanscan.cpp \
+    utils.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -55,7 +59,9 @@ HEADERS += \
     icmpflood.h \
     filterdialog.h \
     iostats.h \
-    commonhelper.h
+    commonhelper.h \
+    lanscan.h \
+    utils.h
 
 FORMS += \
         mainwindow.ui \
@@ -63,7 +69,8 @@ FORMS += \
     toolbox.ui \
     icmpflood.ui \
     filterdialog.ui \
-    iostats.ui
+    iostats.ui \
+    lanscan.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

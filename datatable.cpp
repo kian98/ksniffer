@@ -78,6 +78,7 @@ void DataTable::addData(QStringList data, uint pktlen, const uchar *pkt_data)
     }else if (proto == "ICMPv6" || proto == "TCPv6" || proto == "UDPv6" ||proto == "HTTPv6" || proto == "IPv6") {
         sourceAddr = data[ 3 + 8 - 1].split(": ")[1];
         destAddr = data[ 3 + 9 - 1].split(": ")[1];
+        info = "IPv6 Packet";
     }else if(proto == "Ethernet II"){
         sourceAddr = data[ 2 - 1].split(": ")[1];
         destAddr = data[ 1 - 1].split(": ")[1];

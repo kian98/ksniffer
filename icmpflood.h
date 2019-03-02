@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QButtonGroup>
 #include "wdpcap.h"
+#include "utils.h"
 
 namespace Ui {
 class IcmpFlood;

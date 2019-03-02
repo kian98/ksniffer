@@ -46,7 +46,7 @@
      <item>
       <widget class="QLabel" name="nicNameLabel">
        <property name="text">
-        <string>Current IP:</string>
+        <string>LAN IP:</string>
        </property>
        <property name="indent">
         <number>21</number>

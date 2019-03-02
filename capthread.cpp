@@ -20,7 +20,6 @@ CapThread::~CapThread()
 
 void CapThread::run()
 {
-//    qDebug()<<"run";
     char errbuf[PCAP_ERRBUF_SIZE];
     u_int netmask = 0xffffff;
     struct bpf_program fcode;

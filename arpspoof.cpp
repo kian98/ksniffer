@@ -30,7 +30,7 @@ ArpSpoof::ArpSpoof(QWidget *parent, QString nicName) :
     QRegExpValidator* IPValidator = new QRegExpValidator(ipRx);
     ui->targetIP->setValidator(IPValidator);
     ui->spoofIP->setValidator(IPValidator);
-    QRegExp macRx("([0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2})");
+    QRegExp macRx("([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})");
     QRegExpValidator* macValidator = new QRegExpValidator(macRx);
     ui->targetMacAddr->setValidator(macValidator);
     ui->spoofMacAddr->setValidator(macValidator);
@@ -76,8 +76,8 @@ void ArpSpoof::arpSpoofing(QString targetIP, QString targetMAC,
      */
     QStringList targetIPlist = targetIP.split(".");
     QStringList spoofIPlist = spoofIP.split(".");
-    QStringList targetMAClist = targetMAC.split("-");
-    QStringList spoofMAClist = spoofMAC.split("-");
+    QStringList targetMAClist = targetMAC.split(":");
+    QStringList spoofMAClist = spoofMAC.split(":");
 
     /* 设置以太网帧 */
     eth_header eth;
