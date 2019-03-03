@@ -1,6 +1,6 @@
 # KSniffer
 
-KSniffer is a packet analyzer based on WinPcap. 
+KSniffer is a packet analyzer based on WinPcap (WinPcap lib is in the folder "Wdpcap");
 
 ## KSniffer can
 
