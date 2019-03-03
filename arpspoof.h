@@ -27,7 +27,10 @@ private:
 
 signals:
     void beClosed();
+    void sendText(QString text);
 
+public slots:
+    void addText(QString text);
 };
 
 #endif // ARPSPOOF_H

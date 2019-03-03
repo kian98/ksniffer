@@ -24,7 +24,7 @@ IcmpFlood::IcmpFlood(QWidget *parent, QString nicName, QString nicIP) :
     QRegExpValidator* IPValidator = new QRegExpValidator(ipRx);
     ui->targetIP->setValidator(IPValidator);
     ui->fakeIP->setValidator(IPValidator);
-    QRegExp macRx("([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})");
+    QRegExp macRx("([0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2})");
     QRegExpValidator* macValidator = new QRegExpValidator(macRx);
     ui->targetMAC->setValidator(macValidator);
     ui->fakeMAC->setValidator(macValidator);
@@ -107,9 +107,9 @@ void IcmpFlood::fakeIpIcmpFlood()
     emit sendText("Packet Rate: " + rateStr[rateGroup->checkedId()]);
 
     QStringList targetIPlist = ui->targetIP->text().split(".");
-    QStringList targetMAClist = ui->targetMAC->text().split(";");
+    QStringList targetMAClist = ui->targetMAC->text().split("-");
     QStringList fakeIPlist = ui->fakeIP->text().split(".");
-    QStringList fakeMAClist = ui->fakeMAC->text().split(":");
+    QStringList fakeMAClist = ui->fakeMAC->text().split("-");
 
     u_char mac_src[6];
     u_char mac_dest[6];

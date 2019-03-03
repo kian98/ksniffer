@@ -41,6 +41,10 @@ signals:
     void scanFinish();
     void beClosed();
     void addDataRequest(QString info);
+    void wrongMsg();
+
+public slots:
+    void popWarningBox();
 };
 
 #endif // LANSCAN_H

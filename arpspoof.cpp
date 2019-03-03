@@ -30,7 +30,7 @@ ArpSpoof::ArpSpoof(QWidget *parent, QString nicName) :
     QRegExpValidator* IPValidator = new QRegExpValidator(ipRx);
     ui->targetIP->setValidator(IPValidator);
     ui->spoofIP->setValidator(IPValidator);
-    QRegExp macRx("([0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2}:[0-9A-F]{2})");
+    QRegExp macRx("([0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2})");
     QRegExpValidator* macValidator = new QRegExpValidator(macRx);
     ui->targetMacAddr->setValidator(macValidator);
     ui->spoofMacAddr->setValidator(macValidator);
@@ -58,12 +58,21 @@ ArpSpoof::ArpSpoof(QWidget *parent, QString nicName) :
         ui->stopBtn->setEnabled(false);
         keepSend = false;
     });
+
+    /* Textedit添加文本 */
+    connect(this, &ArpSpoof::sendText, this, &ArpSpoof::addText);
 }
 
 ArpSpoof::~ArpSpoof()
 {
     delete ui;
 }
+
+void ArpSpoof::addText(QString text)
+{
+    ui->ArpResult->append(text);
+}
+
 
 void ArpSpoof::arpSpoofing(QString targetIP, QString targetMAC,
                            QString spoofIP, QString spoofMAC)
@@ -76,8 +85,8 @@ void ArpSpoof::arpSpoofing(QString targetIP, QString targetMAC,
      */
     QStringList targetIPlist = targetIP.split(".");
     QStringList spoofIPlist = spoofIP.split(".");
-    QStringList targetMAClist = targetMAC.split(":");
-    QStringList spoofMAClist = spoofMAC.split(":");
+    QStringList targetMAClist = targetMAC.split("-");
+    QStringList spoofMAClist = spoofMAC.split("-");
 
     /* 设置以太网帧 */
     eth_header eth;
@@ -114,7 +123,7 @@ void ArpSpoof::arpSpoofing(QString targetIP, QString targetMAC,
                        errbuf            // 错误缓冲池
                        )) == nullptr)
     {
-        ui->ArpResult->append("Error when open the adapter.");
+        emit sendText("Error when open the adapter.");
     }
 
 
@@ -123,10 +132,10 @@ void ArpSpoof::arpSpoofing(QString targetIP, QString targetMAC,
     while(keepSend){
         if (pcap_sendpacket(fp, packet, 42 /* size */) != 0)
         {
-            ui->ArpResult->append("Error sending the ARP packet.");
+            emit sendText("Error sending the ARP packet.");
         }
         if(count ==0){
-            ui->ArpResult->append(" - 200 ARP packets sent.");
+            emit sendText(" - 200 ARP packets sent.");
             count = 200;
         }
         count --;

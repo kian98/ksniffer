@@ -2,6 +2,7 @@
 #include "ui_lanscan.h"
 #include <QDialog>
 #include <QProgressBar>
+#include <QMessageBox>
 #include <cmath>
 #include <string.h>
 #include <QDebug>
@@ -195,22 +196,22 @@ void LanScan::icmpCapture()
                               errbuf     // 错误缓冲池
                               ) ) == nullptr)
     {
-        //emit sendWaningMsg("Not Supported", "Unable to open the adapter.");
+        emit wrongMsg();
     }
 
     if(pcap_datalink(adhandle) != DLT_EN10MB)
     {
-        //emit sendWaningMsg("Ethernet Only", "This program works only on Ethernet networks.");
+        emit wrongMsg();
     }
 
-    u_int netmask=0xffffff;
+    u_int netmask=0x000000;
 
     if (pcap_compile(adhandle, &fcode, packet_filter, 1, netmask) <0 )
     {
-        //emit sendWaningMsg("Compile Error", "Unable to compile the packet filter. Start without filter.");
+        emit wrongMsg();
     }else if (pcap_setfilter(adhandle, &fcode)<0)
     {
-        //emit sendWaningMsg("Filter Error", "Error setting the filter.");
+        emit wrongMsg();
     }
 
     while(!isInterrupted &&(res = pcap_next_ex( adhandle, &header, &pkt_data)) >= 0){
@@ -225,7 +226,7 @@ void LanScan::icmpCapture()
     }
 
     if(res == -1){
-        //emit sendWaningMsg("Error", QString("Error reading the packets: %1.").arg(pcap_geterr(adhandle)));
+        emit wrongMsg();
     }
 
     pcap_close(adhandle);
@@ -280,4 +281,11 @@ void LanScan::showProgressDialog()
     connect(this, &LanScan::scanFinish, [=](){
         progressDlg->close();
     });
+}
+
+void LanScan::popWarningBox()
+{
+    QMessageBox *msgBox = new QMessageBox(QMessageBox::Warning, "Warning", "Something wrong, try again.");
+    msgBox->setModal(true);
+    msgBox->show();
 }
