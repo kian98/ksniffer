@@ -33,10 +33,12 @@ private:
     void icmpCapture();
     QStringList icmpAnalysis(const u_char *pkt_data);
 
+    void showProgressDialog();
     void closeEvent(QCloseEvent *event);
 
 signals:
     void interrupt();
+    void scanFinish();
     void beClosed();
     void addDataRequest(QString info);
 };

@@ -1,5 +1,7 @@
 #include "lanscan.h"
 #include "ui_lanscan.h"
+#include <QDialog>
+#include <QProgressBar>
 #include <cmath>
 #include <string.h>
 #include <QDebug>
@@ -79,6 +81,7 @@ LanScan::LanScan(QWidget *parent, QString nicName, QString nicIP) :
 
             isRunning = true;
             isInterrupted =false;
+            showProgressDialog();
 
             std::thread t_receive(&LanScan::icmpCapture, this);
             connect(this, &LanScan::addDataRequest, [=](QString info){
@@ -227,6 +230,7 @@ void LanScan::icmpCapture()
 
     pcap_close(adhandle);
     isRunning = false;
+    emit scanFinish();
 }
 
 QStringList LanScan::icmpAnalysis(const u_char *pkt_data)
@@ -258,4 +262,22 @@ QStringList LanScan::icmpAnalysis(const u_char *pkt_data)
         }
     }
     return info;
+}
+
+void LanScan::showProgressDialog()
+{
+    QDialog *progressDlg = new QDialog(this, Qt::WindowCloseButtonHint);
+    progressDlg->setWindowTitle("Scanning");
+    progressDlg->setModal(true);
+    progressDlg->setFixedSize(300,50);
+
+    QVBoxLayout *layout = new QVBoxLayout(progressDlg);
+    QProgressBar *progBar = new QProgressBar(progressDlg);
+    progBar->setAlignment(Qt::AlignCenter);
+    progBar->setMinimum(0);progBar->setMaximum(0);
+    layout->addWidget(progBar);
+    progressDlg->show();
+    connect(this, &LanScan::scanFinish, [=](){
+        progressDlg->close();
+    });
 }

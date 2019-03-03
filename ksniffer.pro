@@ -7,6 +7,8 @@
 QT       += core gui
 QT += charts
 
+RC_ICONS = icon.ico
+
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = ksniffer
