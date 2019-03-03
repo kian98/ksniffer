@@ -12,16 +12,16 @@ KSniffer is a packet analyzer based on WinPcap (WinPcap lib is in the folder "Wd
 
 ## Screen Shot
 
-![Select Device](.\screenshot\select_dev.png)
+![Select Device](./screenshot/select_dev.png)
 
-![Capture](.\screenshot\capture.png)
+![Capture](./screenshot/capture.png)
 
-![Filter Setting](.\screenshot\filter.png)
+![Filter Setting](./screenshot/filter.png)
 
-![IO chart](.\screenshot\io.png)
+![IO chart](./screenshot/io.png)
 
-![Scanner](.\screenshot\scan.png)
+![Scanner](./screenshot/scan.png)
 
-![ARP spoofing](.\screenshot\arp.png)
+![ARP spoofing](./screenshot/arp.png)
 
-![ICMP flood](.\screenshot\flood.png)
+![ICMP flood](./screenshot/flood.png)
