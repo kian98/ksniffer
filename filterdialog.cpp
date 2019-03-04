@@ -209,6 +209,5 @@ QString FilterDialog::filterSyntax(QStringList fList)
     if(!port.isEmpty()){
         all << "("+port.join(" or ")+")";
     }
-
     return all.join(" and ");
 }

@@ -300,6 +300,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>fakeFlood</tabstop>
+  <tabstop>targetIP</tabstop>
+  <tabstop>targetMAC</tabstop>
+  <tabstop>fakeIP</tabstop>
+  <tabstop>fakeMAC</tabstop>
+  <tabstop>lowRate</tabstop>
+  <tabstop>midRate</tabstop>
+  <tabstop>highRate</tabstop>
+  <tabstop>startBtn</tabstop>
+  <tabstop>stopBtn</tabstop>
+  <tabstop>icmpResult</tabstop>
+ </tabstops>
  <resources>
   <include location="res.qrc"/>
  </resources>
